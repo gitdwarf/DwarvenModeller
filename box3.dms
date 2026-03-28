@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dms version="1.0">
+  <metadata created="2026-03-22T09:32:28.466749+00:00" version="1.0"/>
+  <viewpoints>
+    <viewpoint name="default" az="12.5" el="24.2" scale="19.8" pos="17.2,42.7,-77.6" look_at="0.0,7.0,0.0"/>
+  </viewpoints>
+  <scene>
+    <object id="panel_back" type="cube">
+      <params width="20.0" height="13.0" depth="0.4"/>
+      <transform translate="0.0,0.0,-10.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#c8813a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="panel_front" type="cube">
+      <params width="20.0" height="13.0" depth="0.4"/>
+      <transform translate="0.0,0.0,10.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#c8813a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="panel_left" type="cube">
+      <params width="0.4" height="13.0" depth="20.0"/>
+      <transform translate="-10.0,0.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#c8813a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="panel_right" type="cube">
+      <params width="0.4" height="13.0" depth="20.0"/>
+      <transform translate="10.0,0.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#c8813a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="panel_bottom" type="cube">
+      <params width="20.0" height="0.4" depth="20.0"/>
+      <transform translate="0.0,-6.5,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#b87030" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="hinge_back" type="null">
+      <transform translate="0.0,6.5,-10.0" rotate="-110.0,-0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#cccccc" stroke="#888888" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+      <object id="flap_back" type="cube">
+        <params width="20.0" height="10.0" depth="0.4"/>
+        <transform translate="0.0,5.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#d4924a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,5.0,0.0"/>
+      </object>
+    </object>
+    <object id="hinge_front" type="null">
+      <transform translate="0.0,6.5,10.0" rotate="70.0,-0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#cccccc" stroke="#888888" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+      <object id="flap_front" type="cube">
+        <params width="20.0" height="10.0" depth="0.4"/>
+        <transform translate="0.0,5.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#d4924a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,5.0,0.0"/>
+      </object>
+    </object>
+    <object id="hinge_flap_left" type="null">
+      <transform translate="-10.0,6.5,0.0" rotate="0.0,-0.0,110.0" scale="1.0,1.0,1.0"/>
+      <material fill="#cccccc" stroke="#888888" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+      <object id="flap_left" type="cube">
+        <params width="0.4" height="10.0" depth="20.0"/>
+        <transform translate="0.0,5.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#d4924a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,5.0,0.0"/>
+      </object>
+    </object>
+    <object id="hinge_flap_right" type="null">
+      <transform translate="10.0,6.5,0.0" rotate="0.0,0.0,-110.0" scale="1.0,1.0,1.0"/>
+      <material fill="#cccccc" stroke="#888888" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+      <object id="flap_right" type="cube">
+        <params width="0.4" height="10.0" depth="20.0"/>
+        <transform translate="-0.0,5.0,0.0" rotate="0.0,-0.0,-0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#d4924a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="-0.0,5.0,0.0"/>
+      </object>
+    </object>
+    <object id="doc_yellow" type="cube">
+      <params width="12" height="17" depth="0.35"/>
+      <transform translate="0.0,11.0,0.0" rotate="15.0,180.0,5.0" scale="1.0,1.0,1.0"/>
+      <material fill="#fffff0" stroke="#c8c0a0" stroke_width="0.5" opacity="1.0" shininess="0.1"/>
+      <object id="yhdr" type="cube">
+        <params width="12" height="1.5" depth="0.5"/>
+        <transform translate="0.0,7.5,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#e8c000" stroke="#c8a000" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,7.5,0.0"/>
+      </object>
+      <object id="yl0" type="cube">
+        <params width="7.0" height="0.4" depth="0.06"/>
+        <transform translate="0.0,-5.0,0.22" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#b89000" stroke="#b89000" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-5.0,0.22"/>
+      </object>
+      <object id="yl1" type="cube">
+        <params width="7.0" height="0.4" depth="0.06"/>
+        <transform translate="0.0,-2.5,0.22" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#b89000" stroke="#b89000" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-2.5,0.22"/>
+      </object>
+      <object id="yl2" type="cube">
+        <params width="7.0" height="0.4" depth="0.06"/>
+        <transform translate="0.0,0.0,0.22" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#b89000" stroke="#b89000" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,0.0,0.22"/>
+      </object>
+      <object id="yl3" type="cube">
+        <params width="7.0" height="0.4" depth="0.06"/>
+        <transform translate="0.0,2.5,0.22" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#b89000" stroke="#b89000" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,2.5,0.22"/>
+      </object>
+    </object>
+    <object id="doc_red" type="cube">
+      <params width="12" height="17" depth="0.35"/>
+      <transform translate="-14.0,20.0,-1.0" rotate="10.0,140.0,55.0" scale="1.0,1.0,1.0"/>
+      <material fill="#fff5f5" stroke="#c8c0a0" stroke_width="0.5" opacity="1.0" shininess="0.1"/>
+      <object id="rhdr" type="cube">
+        <params width="12" height="1.5" depth="0.5"/>
+        <transform translate="0.0,7.5,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#d02020" stroke="#a01010" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,7.5,0.0"/>
+      </object>
+      <object id="rl0" type="cube">
+        <params width="7.0" height="0.4" depth="0.06"/>
+        <transform translate="0.0,-5.0,0.22" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#901010" stroke="#901010" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-5.0,0.22"/>
+      </object>
+      <object id="rl1" type="cube">
+        <params width="7.0" height="0.4" depth="0.06"/>
+        <transform translate="0.0,-2.5,0.22" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#901010" stroke="#901010" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-2.5,0.22"/>
+      </object>
+      <object id="rl2" type="cube">
+        <params width="7.0" height="0.4" depth="0.06"/>
+        <transform translate="0.0,0.0,0.22" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#901010" stroke="#901010" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,0.0,0.22"/>
+      </object>
+      <object id="rl3" type="cube">
+        <params width="7.0" height="0.4" depth="0.06"/>
+        <transform translate="0.0,2.5,0.22" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#901010" stroke="#901010" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,2.5,0.22"/>
+      </object>
+    </object>
+    <object id="doc_blue" type="cube">
+      <params width="12" height="17" depth="0.35"/>
+      <transform translate="14.0,19.0,1.0" rotate="10.0,220.0,-55.0" scale="1.0,1.0,1.0"/>
+      <material fill="#f5f5ff" stroke="#c8c0a0" stroke_width="0.5" opacity="1.0" shininess="0.1"/>
+      <object id="bhdr" type="cube">
+        <params width="12" height="1.5" depth="0.5"/>
+        <transform translate="0.0,7.5,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#2050d0" stroke="#1030a0" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,7.5,0.0"/>
+      </object>
+      <object id="bl0" type="cube">
+        <params width="7.0" height="0.4" depth="0.06"/>
+        <transform translate="0.0,-5.0,0.22" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#102898" stroke="#102898" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-5.0,0.22"/>
+      </object>
+      <object id="bl1" type="cube">
+        <params width="7.0" height="0.4" depth="0.06"/>
+        <transform translate="0.0,-2.5,0.22" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#102898" stroke="#102898" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-2.5,0.22"/>
+      </object>
+      <object id="bl2" type="cube">
+        <params width="7.0" height="0.4" depth="0.06"/>
+        <transform translate="0.0,0.0,0.22" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#102898" stroke="#102898" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,0.0,0.22"/>
+      </object>
+      <object id="bl3" type="cube">
+        <params width="7.0" height="0.4" depth="0.06"/>
+        <transform translate="0.0,2.5,0.22" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#102898" stroke="#102898" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,2.5,0.22"/>
+      </object>
+    </object>
+  </scene>
+  <history>
+    <op cmd="add type=cube id=panel_back  width=20 height=13 depth=0.4  fill=#c8813a stroke=#8a4a18 at=0,0,-10.0" timestamp="2026-03-22T09:32:28.625432+00:00"/>
+    <op cmd="add type=cube id=panel_front width=20 height=13 depth=0.4  fill=#c8813a stroke=#8a4a18 at=0,0,10.0" timestamp="2026-03-22T09:32:28.813964+00:00"/>
+    <op cmd="add type=cube id=panel_left  width=0.4 height=13 depth=20  fill=#c8813a stroke=#8a4a18 at=-10.0,0,0" timestamp="2026-03-22T09:32:29.001473+00:00"/>
+    <op cmd="add type=cube id=panel_right width=0.4 height=13 depth=20  fill=#c8813a stroke=#8a4a18 at=10.0,0,0" timestamp="2026-03-22T09:32:29.197472+00:00"/>
+    <op cmd="add type=cube id=panel_bottom width=20 height=0.4 depth=20 fill=#b87030 stroke=#8a4a18 at=0,-6.5,0" timestamp="2026-03-22T09:32:29.384893+00:00"/>
+    <op cmd="add type=null id=hinge_back at=0,6.5,-10.0" timestamp="2026-03-22T09:32:29.571823+00:00"/>
+    <op cmd="add type=cube id=flap_back width=20 height=10.0 depth=0.4 fill=#d4924a stroke=#8a4a18" timestamp="2026-03-22T09:32:29.763355+00:00"/>
+    <op cmd="attach child=flap_back to=hinge_back at=0,5.0,0" timestamp="2026-03-22T09:32:29.920186+00:00"/>
+    <op cmd="rotate target=hinge_back x=-110" timestamp="2026-03-22T09:32:30.106206+00:00"/>
+    <op cmd="add type=null id=hinge_front at=0,6.5,10.0" timestamp="2026-03-22T09:32:30.298301+00:00"/>
+    <op cmd="add type=cube id=flap_front width=20 height=10.0 depth=0.4 fill=#d4924a stroke=#8a4a18" timestamp="2026-03-22T09:32:30.489685+00:00"/>
+    <op cmd="attach child=flap_front to=hinge_front at=0,5.0,0" timestamp="2026-03-22T09:32:30.677207+00:00"/>
+    <op cmd="rotate target=hinge_front x=70" timestamp="2026-03-22T09:32:30.860355+00:00"/>
+    <op cmd="add type=null id=hinge_flap_left at=-10.0,6.5,0" timestamp="2026-03-22T09:32:31.026819+00:00"/>
+    <op cmd="add type=cube id=flap_left width=0.4 height=10.0 depth=20 fill=#d4924a stroke=#8a4a18" timestamp="2026-03-22T09:32:31.220843+00:00"/>
+    <op cmd="attach child=flap_left to=hinge_flap_left at=0,5.0,0" timestamp="2026-03-22T09:32:31.413144+00:00"/>
+    <op cmd="rotate target=hinge_flap_left z=110" timestamp="2026-03-22T09:32:31.610370+00:00"/>
+    <op cmd="mirror target=hinge_flap_left axis=x as=hinge_flap_right" timestamp="2026-03-22T09:32:31.795105+00:00"/>
+    <op cmd="rename target=flap_left_m id=flap_right" timestamp="2026-03-22T09:32:31.991510+00:00"/>
+    <op cmd="viewpoint az=210 el=25 scale=11" timestamp="2026-03-22T09:32:32.183845+00:00"/>
+    <op cmd="viewpoint az=30 el=25 scale=11" timestamp="2026-03-22T09:36:29.082294+00:00"/>
+    <op cmd="add type=cube id=doc_yellow width=8 height=11 depth=0.3 fill=#f0d84a stroke=#c8a820 at=-1,6.5,1" timestamp="2026-03-22T09:52:30.420559+00:00"/>
+    <op cmd="rotate target=doc_yellow x=-10 z=15" timestamp="2026-03-22T09:52:30.620495+00:00"/>
+    <op cmd="add type=cube id=doc_red width=8 height=11 depth=0.3 fill=#e03030 stroke=#a01010 at=-8,16,-4" timestamp="2026-03-22T09:52:40.291722+00:00"/>
+    <op cmd="rotate target=doc_red x=-35 z=-25" timestamp="2026-03-22T09:52:40.509419+00:00"/>
+    <op cmd="add type=cube id=doc_blue width=8 height=11 depth=0.3 fill=#3060e0 stroke=#1030a0 at=9,15,3" timestamp="2026-03-22T09:52:40.749791+00:00"/>
+    <op cmd="rotate target=doc_blue x=-20 z=30" timestamp="2026-03-22T09:52:40.957132+00:00"/>
+    <op cmd="move target=doc_yellow to=-1,10,1" timestamp="2026-03-22T09:53:19.097471+00:00"/>
+    <op cmd="colour target=doc_yellow fill=#f5e030 shininess=0.3" timestamp="2026-03-22T09:54:57.558455+00:00"/>
+    <op cmd="colour target=doc_red fill=#e83030 shininess=0.3" timestamp="2026-03-22T09:54:57.749968+00:00"/>
+    <op cmd="colour target=doc_blue fill=#3070e8 shininess=0.3" timestamp="2026-03-22T09:54:57.952431+00:00"/>
+    <op cmd="param target=doc_yellow width=12 height=17 depth=0.35" timestamp="2026-03-22T09:58:42.765231+00:00"/>
+    <op cmd="param target=doc_red width=12 height=17 depth=0.35" timestamp="2026-03-22T09:58:42.965328+00:00"/>
+    <op cmd="param target=doc_blue width=12 height=17 depth=0.35" timestamp="2026-03-22T09:58:43.168586+00:00"/>
+    <op cmd="move target=doc_yellow to=-1,11,1" timestamp="2026-03-22T09:58:43.373259+00:00"/>
+    <op cmd="move target=doc_red to=-9,18,-4" timestamp="2026-03-22T09:58:43.576234+00:00"/>
+    <op cmd="move target=doc_blue to=10,17,3" timestamp="2026-03-22T09:58:43.776877+00:00"/>
+    <op cmd="add type=cube id=yhdr width=11.5 height=2.5 depth=0.05 fill=#c8a818 stroke=#c8a818" timestamp="2026-03-22T09:59:03.866618+00:00"/>
+    <op cmd="attach child=yhdr to=doc_yellow at=0,6.5,0.2" timestamp="2026-03-22T09:59:04.076831+00:00"/>
+    <op cmd="add type=cube id=ymargin width=0.15 height=13 depth=0.05 fill=#c89010 stroke=#c89010" timestamp="2026-03-22T09:59:04.287578+00:00"/>
+    <op cmd="attach child=ymargin to=doc_yellow at=-4.5,0,0.2" timestamp="2026-03-22T09:59:04.506972+00:00"/>
+    <op cmd="add type=cube id=yline0 width=10 height=0.12 depth=0.05 fill=#c89010 stroke=#c89010" timestamp="2026-03-22T09:59:13.172105+00:00"/>
+    <op cmd="attach child=yline0 to=doc_yellow at=0,-5,0.2" timestamp="2026-03-22T09:59:13.378571+00:00"/>
+    <op cmd="add type=cube id=yline1 width=10 height=0.12 depth=0.05 fill=#c89010 stroke=#c89010" timestamp="2026-03-22T09:59:13.576588+00:00"/>
+    <op cmd="attach child=yline1 to=doc_yellow at=0,-2.5,0.2" timestamp="2026-03-22T09:59:13.784123+00:00"/>
+    <op cmd="add type=cube id=yline2 width=10 height=0.12 depth=0.05 fill=#c89010 stroke=#c89010" timestamp="2026-03-22T09:59:13.990093+00:00"/>
+    <op cmd="attach child=yline2 to=doc_yellow at=0,0,0.2" timestamp="2026-03-22T09:59:14.191011+00:00"/>
+    <op cmd="add type=cube id=yline3 width=10 height=0.12 depth=0.05 fill=#c89010 stroke=#c89010" timestamp="2026-03-22T09:59:14.385127+00:00"/>
+    <op cmd="attach child=yline3 to=doc_yellow at=0,2.5,0.2" timestamp="2026-03-22T09:59:14.581760+00:00"/>
+    <op cmd="add type=cube id=yline4 width=10 height=0.12 depth=0.05 fill=#c89010 stroke=#c89010" timestamp="2026-03-22T09:59:14.775873+00:00"/>
+    <op cmd="attach child=yline4 to=doc_yellow at=0,5,0.2" timestamp="2026-03-22T09:59:14.968816+00:00"/>
+    <op cmd="add type=cube id=rhdr width=11.5 height=2.5 depth=0.05 fill=#b01818 stroke=#b01818" timestamp="2026-03-22T09:59:25.708885+00:00"/>
+    <op cmd="attach child=rhdr to=doc_red at=0,6.5,0.2" timestamp="2026-03-22T09:59:25.899857+00:00"/>
+    <op cmd="add type=cube id=rmargin width=0.15 height=13 depth=0.05 fill=#b01818 stroke=#b01818" timestamp="2026-03-22T09:59:26.100353+00:00"/>
+    <op cmd="attach child=rmargin to=doc_red at=-4.5,0,0.2" timestamp="2026-03-22T09:59:26.295517+00:00"/>
+    <op cmd="add type=cube id=rline0 width=10 height=0.12 depth=0.05 fill=#b01818 stroke=#b01818" timestamp="2026-03-22T09:59:26.492005+00:00"/>
+    <op cmd="attach child=rline0 to=doc_red at=0,-5,0.2" timestamp="2026-03-22T09:59:26.697148+00:00"/>
+    <op cmd="add type=cube id=rline1 width=10 height=0.12 depth=0.05 fill=#b01818 stroke=#b01818" timestamp="2026-03-22T09:59:26.896361+00:00"/>
+    <op cmd="attach child=rline1 to=doc_red at=0,-2.5,0.2" timestamp="2026-03-22T09:59:27.105643+00:00"/>
+    <op cmd="add type=cube id=rline2 width=10 height=0.12 depth=0.05 fill=#b01818 stroke=#b01818" timestamp="2026-03-22T09:59:27.346327+00:00"/>
+    <op cmd="attach child=rline2 to=doc_red at=0,0,0.2" timestamp="2026-03-22T09:59:27.546965+00:00"/>
+    <op cmd="add type=cube id=rline3 width=10 height=0.12 depth=0.05 fill=#b01818 stroke=#b01818" timestamp="2026-03-22T09:59:27.755595+00:00"/>
+    <op cmd="attach child=rline3 to=doc_red at=0,2.5,0.2" timestamp="2026-03-22T09:59:27.963043+00:00"/>
+    <op cmd="add type=cube id=rline4 width=10 height=0.12 depth=0.05 fill=#b01818 stroke=#b01818" timestamp="2026-03-22T09:59:28.171308+00:00"/>
+    <op cmd="attach child=rline4 to=doc_red at=0,5,0.2" timestamp="2026-03-22T09:59:28.363577+00:00"/>
+    <op cmd="add type=cube id=bhdr width=11.5 height=2.5 depth=0.05 fill=#1848b8 stroke=#1848b8" timestamp="2026-03-22T09:59:28.557898+00:00"/>
+    <op cmd="attach child=bhdr to=doc_blue at=0,6.5,0.2" timestamp="2026-03-22T09:59:28.754341+00:00"/>
+    <op cmd="add type=cube id=bmargin width=0.15 height=13 depth=0.05 fill=#1848b8 stroke=#1848b8" timestamp="2026-03-22T09:59:28.950815+00:00"/>
+    <op cmd="attach child=bmargin to=doc_blue at=-4.5,0,0.2" timestamp="2026-03-22T09:59:29.159771+00:00"/>
+    <op cmd="add type=cube id=bline0 width=10 height=0.12 depth=0.05 fill=#1848b8 stroke=#1848b8" timestamp="2026-03-22T09:59:29.384315+00:00"/>
+    <op cmd="attach child=bline0 to=doc_blue at=0,-5,0.2" timestamp="2026-03-22T09:59:29.600639+00:00"/>
+    <op cmd="add type=cube id=bline1 width=10 height=0.12 depth=0.05 fill=#1848b8 stroke=#1848b8" timestamp="2026-03-22T09:59:29.844655+00:00"/>
+    <op cmd="attach child=bline1 to=doc_blue at=0,-2.5,0.2" timestamp="2026-03-22T09:59:30.060052+00:00"/>
+    <op cmd="add type=cube id=bline2 width=10 height=0.12 depth=0.05 fill=#1848b8 stroke=#1848b8" timestamp="2026-03-22T09:59:30.280747+00:00"/>
+    <op cmd="attach child=bline2 to=doc_blue at=0,0,0.2" timestamp="2026-03-22T09:59:30.496310+00:00"/>
+    <op cmd="add type=cube id=bline3 width=10 height=0.12 depth=0.05 fill=#1848b8 stroke=#1848b8" timestamp="2026-03-22T09:59:30.713868+00:00"/>
+    <op cmd="attach child=bline3 to=doc_blue at=0,2.5,0.2" timestamp="2026-03-22T09:59:30.964530+00:00"/>
+    <op cmd="add type=cube id=bline4 width=10 height=0.12 depth=0.05 fill=#1848b8 stroke=#1848b8" timestamp="2026-03-22T09:59:31.177525+00:00"/>
+    <op cmd="attach child=bline4 to=doc_blue at=0,5,0.2" timestamp="2026-03-22T09:59:31.380406+00:00"/>
+    <op cmd="colour target=doc_yellow fill=#f5f0e0 stroke=#c8c0a0 shininess=0.1" timestamp="2026-03-22T10:01:41.581272+00:00"/>
+    <op cmd="colour target=doc_red   fill=#f5f0e0 stroke=#c8c0a0 shininess=0.1" timestamp="2026-03-22T10:01:41.799675+00:00"/>
+    <op cmd="colour target=doc_blue  fill=#f5f0e0 stroke=#c8c0a0 shininess=0.1" timestamp="2026-03-22T10:01:42.043008+00:00"/>
+    <op cmd="colour target=yhdr fill=#e8c000 stroke=#c8a000" timestamp="2026-03-22T10:01:42.256998+00:00"/>
+    <op cmd="colour target=rhdr fill=#d02020 stroke=#a01010" timestamp="2026-03-22T10:01:42.466013+00:00"/>
+    <op cmd="colour target=bhdr fill=#2050d0 stroke=#1030a0" timestamp="2026-03-22T10:01:42.665397+00:00"/>
+    <op cmd="colour target=ymargin fill=#e8c000 stroke=#c8a000" timestamp="2026-03-22T10:01:42.883510+00:00"/>
+    <op cmd="colour target=rmargin fill=#d02020 stroke=#a01010" timestamp="2026-03-22T10:01:43.105795+00:00"/>
+    <op cmd="colour target=bmargin fill=#2050d0 stroke=#1030a0" timestamp="2026-03-22T10:01:43.308902+00:00"/>
+    <op cmd="colour target=yline0 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:43.554472+00:00"/>
+    <op cmd="colour target=yline1 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:43.770382+00:00"/>
+    <op cmd="colour target=yline2 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:43.969387+00:00"/>
+    <op cmd="colour target=yline3 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:44.161466+00:00"/>
+    <op cmd="colour target=yline4 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:44.356067+00:00"/>
+    <op cmd="colour target=rline0 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:44.552084+00:00"/>
+    <op cmd="colour target=rline1 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:44.747759+00:00"/>
+    <op cmd="colour target=rline2 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:44.973583+00:00"/>
+    <op cmd="colour target=rline3 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:45.205023+00:00"/>
+    <op cmd="colour target=rline4 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:45.460057+00:00"/>
+    <op cmd="colour target=bline0 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:45.690371+00:00"/>
+    <op cmd="colour target=bline1 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:45.893586+00:00"/>
+    <op cmd="colour target=bline2 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:46.095419+00:00"/>
+    <op cmd="colour target=bline3 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:46.294143+00:00"/>
+    <op cmd="colour target=bline4 fill=#a0b8d8 stroke=#a0b8d8" timestamp="2026-03-22T10:01:46.493892+00:00"/>
+    <op cmd="move target=doc_yellow to=0,11,0" timestamp="2026-03-22T10:01:59.350466+00:00"/>
+    <op cmd="move target=doc_red to=-11,19,-2" timestamp="2026-03-22T10:01:59.798196+00:00"/>
+    <op cmd="move target=doc_blue to=12,18,2" timestamp="2026-03-22T10:02:00.194510+00:00"/>
+    <op cmd="rotate target=doc_blue x=-15 z=20" timestamp="2026-03-22T10:02:00.405090+00:00"/>
+    <op cmd="move target=doc_red to=-14,20,-1" timestamp="2026-03-22T10:02:11.459225+00:00"/>
+    <op cmd="move target=doc_blue to=14,19,1" timestamp="2026-03-22T10:02:11.690334+00:00"/>
+    <op cmd="rotate target=doc_yellow x=-5 z=8 force=true" timestamp="2026-03-22T10:02:11.943090+00:00"/>
+    <op cmd="rotate target=doc_red x=-20 z=-25 force=true" timestamp="2026-03-22T10:02:12.173938+00:00"/>
+    <op cmd="rotate target=doc_blue x=-20 z=25 force=true" timestamp="2026-03-22T10:02:12.395031+00:00"/>
+    <op cmd="colour target=yhdr fill=#e8c000 stroke=#c8a000" timestamp="2026-03-22T10:03:19.764017+00:00"/>
+    <op cmd="param target=yhdr width=12 height=1.5 depth=0.5" timestamp="2026-03-22T10:03:19.998165+00:00"/>
+    <op cmd="detach target=yhdr" timestamp="2026-03-22T10:03:20.203812+00:00"/>
+    <op cmd="attach child=yhdr to=doc_yellow at=0,7.5,0" timestamp="2026-03-22T10:03:20.441544+00:00"/>
+    <op cmd="param target=rhdr width=12 height=1.5 depth=0.5" timestamp="2026-03-22T10:03:20.652650+00:00"/>
+    <op cmd="detach target=rhdr" timestamp="2026-03-22T10:03:20.854752+00:00"/>
+    <op cmd="attach child=rhdr to=doc_red at=0,7.5,0" timestamp="2026-03-22T10:03:21.068331+00:00"/>
+    <op cmd="param target=bhdr width=12 height=1.5 depth=0.5" timestamp="2026-03-22T10:03:21.282340+00:00"/>
+    <op cmd="detach target=bhdr" timestamp="2026-03-22T10:03:21.481272+00:00"/>
+    <op cmd="attach child=bhdr to=doc_blue at=0,7.5,0" timestamp="2026-03-22T10:03:21.686218+00:00"/>
+    <op cmd="colour target=doc_yellow fill=#fffff0 stroke=#c8c0a0" timestamp="2026-03-22T10:03:21.892644+00:00"/>
+    <op cmd="colour target=doc_red   fill=#fff5f5 stroke=#c8c0a0" timestamp="2026-03-22T10:03:22.097069+00:00"/>
+    <op cmd="colour target=doc_blue  fill=#f5f5ff stroke=#c8c0a0" timestamp="2026-03-22T10:03:22.298555+00:00"/>
+    <op cmd="delete target=yline0" timestamp="2026-03-22T10:08:47.797375+00:00"/>
+    <op cmd="delete target=yline1" timestamp="2026-03-22T10:08:48.043076+00:00"/>
+    <op cmd="delete target=yline2" timestamp="2026-03-22T10:08:48.266519+00:00"/>
+    <op cmd="delete target=yline3" timestamp="2026-03-22T10:08:48.499495+00:00"/>
+    <op cmd="delete target=yline4" timestamp="2026-03-22T10:08:48.749053+00:00"/>
+    <op cmd="delete target=rline0" timestamp="2026-03-22T10:08:48.968478+00:00"/>
+    <op cmd="delete target=rline1" timestamp="2026-03-22T10:08:49.173305+00:00"/>
+    <op cmd="delete target=rline2" timestamp="2026-03-22T10:08:49.386086+00:00"/>
+    <op cmd="delete target=rline3" timestamp="2026-03-22T10:08:49.604553+00:00"/>
+    <op cmd="delete target=rline4" timestamp="2026-03-22T10:08:49.843070+00:00"/>
+    <op cmd="delete target=bline0" timestamp="2026-03-22T10:08:50.072510+00:00"/>
+    <op cmd="delete target=bline1" timestamp="2026-03-22T10:08:50.287773+00:00"/>
+    <op cmd="delete target=bline2" timestamp="2026-03-22T10:08:50.496504+00:00"/>
+    <op cmd="delete target=bline3" timestamp="2026-03-22T10:08:50.748115+00:00"/>
+    <op cmd="delete target=bline4" timestamp="2026-03-22T10:08:50.956091+00:00"/>
+    <op cmd="delete target=ymargin" timestamp="2026-03-22T10:08:51.167024+00:00"/>
+    <op cmd="delete target=rmargin" timestamp="2026-03-22T10:08:51.391746+00:00"/>
+    <op cmd="delete target=bmargin" timestamp="2026-03-22T10:08:51.601938+00:00"/>
+    <op cmd="add type=cube id=yl0 width=7 height=0.4 depth=0.06 fill=#b89000 stroke=#b89000" timestamp="2026-03-22T10:09:03.906042+00:00"/>
+    <op cmd="attach child=yl0 to=doc_yellow at=0,-5,0.22" timestamp="2026-03-22T10:09:04.147208+00:00"/>
+    <op cmd="add type=cube id=yl1 width=7 height=0.4 depth=0.06 fill=#b89000 stroke=#b89000" timestamp="2026-03-22T10:09:04.377386+00:00"/>
+    <op cmd="attach child=yl1 to=doc_yellow at=0,-2.5,0.22" timestamp="2026-03-22T10:09:04.601503+00:00"/>
+    <op cmd="add type=cube id=yl2 width=7 height=0.4 depth=0.06 fill=#b89000 stroke=#b89000" timestamp="2026-03-22T10:09:04.842955+00:00"/>
+    <op cmd="attach child=yl2 to=doc_yellow at=0,0,0.22" timestamp="2026-03-22T10:09:05.070491+00:00"/>
+    <op cmd="add type=cube id=yl3 width=7 height=0.4 depth=0.06 fill=#b89000 stroke=#b89000" timestamp="2026-03-22T10:09:05.296249+00:00"/>
+    <op cmd="attach child=yl3 to=doc_yellow at=0,2.5,0.22" timestamp="2026-03-22T10:09:05.546651+00:00"/>
+    <op cmd="add type=cube id=rl0 width=7 height=0.4 depth=0.06 fill=#901010 stroke=#901010" timestamp="2026-03-22T10:09:05.767059+00:00"/>
+    <op cmd="attach child=rl0 to=doc_red at=0,-5,0.22" timestamp="2026-03-22T10:09:05.985686+00:00"/>
+    <op cmd="add type=cube id=rl1 width=7 height=0.4 depth=0.06 fill=#901010 stroke=#901010" timestamp="2026-03-22T10:09:06.183621+00:00"/>
+    <op cmd="attach child=rl1 to=doc_red at=0,-2.5,0.22" timestamp="2026-03-22T10:09:06.400694+00:00"/>
+    <op cmd="add type=cube id=rl2 width=7 height=0.4 depth=0.06 fill=#901010 stroke=#901010" timestamp="2026-03-22T10:09:06.648895+00:00"/>
+    <op cmd="attach child=rl2 to=doc_red at=0,0,0.22" timestamp="2026-03-22T10:09:06.866621+00:00"/>
+    <op cmd="add type=cube id=rl3 width=7 height=0.4 depth=0.06 fill=#901010 stroke=#901010" timestamp="2026-03-22T10:09:07.080308+00:00"/>
+    <op cmd="attach child=rl3 to=doc_red at=0,2.5,0.22" timestamp="2026-03-22T10:09:07.289265+00:00"/>
+    <op cmd="add type=cube id=bl0 width=7 height=0.4 depth=0.06 fill=#102898 stroke=#102898" timestamp="2026-03-22T10:09:07.511721+00:00"/>
+    <op cmd="attach child=bl0 to=doc_blue at=0,-5,0.22" timestamp="2026-03-22T10:09:07.750878+00:00"/>
+    <op cmd="add type=cube id=bl1 width=7 height=0.4 depth=0.06 fill=#102898 stroke=#102898" timestamp="2026-03-22T10:09:07.964062+00:00"/>
+    <op cmd="attach child=bl1 to=doc_blue at=0,-2.5,0.22" timestamp="2026-03-22T10:09:08.166074+00:00"/>
+    <op cmd="add type=cube id=bl2 width=7 height=0.4 depth=0.06 fill=#102898 stroke=#102898" timestamp="2026-03-22T10:09:08.376158+00:00"/>
+    <op cmd="attach child=bl2 to=doc_blue at=0,0,0.22" timestamp="2026-03-22T10:09:08.578304+00:00"/>
+    <op cmd="add type=cube id=bl3 width=7 height=0.4 depth=0.06 fill=#102898 stroke=#102898" timestamp="2026-03-22T10:09:08.807326+00:00"/>
+    <op cmd="attach child=bl3 to=doc_blue at=0,2.5,0.22" timestamp="2026-03-22T10:09:09.058030+00:00"/>
+    <op cmd="rotate target=doc_yellow x=20 force=true" timestamp="2026-03-22T10:09:55.968343+00:00"/>
+    <op cmd="rotate target=doc_red x=-10 z=-15 force=true" timestamp="2026-03-22T10:09:56.167930+00:00"/>
+    <op cmd="rotate target=doc_blue x=-10 z=15 force=true" timestamp="2026-03-22T10:09:56.364558+00:00"/>
+    <op cmd="rotate target=doc_yellow x=0 y=180 z=10 force=true" timestamp="2026-03-22T10:10:42.591637+00:00"/>
+    <op cmd="rotate target=doc_red x=-10 y=160 z=-15 force=true" timestamp="2026-03-22T10:10:42.804616+00:00"/>
+    <op cmd="rotate target=doc_blue x=-10 y=200 z=15 force=true" timestamp="2026-03-22T10:10:43.013808+00:00"/>
+    <op cmd="rotate target=doc_yellow set=15,180,8 force=true" timestamp="2026-03-22T10:11:02.454495+00:00"/>
+    <op cmd="rotate target=doc_red set=10,165,-20 force=true" timestamp="2026-03-22T10:11:02.659101+00:00"/>
+    <op cmd="rotate target=doc_blue set=10,195,20 force=true" timestamp="2026-03-22T10:11:02.854659+00:00"/>
+    <op cmd="rotate target=doc_red set=10,140,-20 force=true" timestamp="2026-03-22T10:14:05.961502+00:00"/>
+    <op cmd="rotate target=doc_blue set=10,220,20 force=true" timestamp="2026-03-22T10:14:06.194243+00:00"/>
+    <op cmd="rotate target=doc_yellow set=15,180,5 force=true" timestamp="2026-03-22T10:16:29.557212+00:00"/>
+    <op cmd="rotate target=doc_red set=10,140,-38 force=true" timestamp="2026-03-22T10:16:29.764940+00:00"/>
+    <op cmd="rotate target=doc_blue set=10,220,38 force=true" timestamp="2026-03-22T10:16:29.964508+00:00"/>
+    <op cmd="rotate target=doc_red set=10,140,-55 force=true" timestamp="2026-03-22T10:16:54.314214+00:00"/>
+    <op cmd="rotate target=doc_blue set=10,220,55 force=true" timestamp="2026-03-22T10:16:54.516463+00:00"/>
+    <op cmd="rotate target=doc_red set=10,140,55 force=true" timestamp="2026-03-22T10:19:45.559899+00:00"/>
+    <op cmd="rotate target=doc_blue set=10,220,-55 force=true" timestamp="2026-03-22T10:19:45.766141+00:00"/>
+    <op cmd="viewpoint az=12.5 el=28.2 scale=19.8" timestamp="2026-03-22T10:41:49.005565+00:00"/>
+    <op cmd="viewpoint pos=17.2,42.7,-77.6 look_at=0,7,0 az=12.5 el=24.2 scale=19.8" timestamp="2026-03-22T11:34:48.188784+00:00"/>
+  </history>
+</dms>

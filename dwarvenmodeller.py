@@ -2799,84 +2799,93 @@ def export_gltf(scene, out_path, subdivisions=3):
         gltf['nodes'].append({'mesh':i,'name':f'node_{i}'})
 
     # ── Camera node ───────────────────────────────────────────────────────────
-    # Convert DM viewpoint (az/el) to glTF camera position.
-    # DM: Y-up, Z-toward-viewer at az=0. glTF: Y-up, Z-backward.
-    # So glTF cam_z = -DM cam_z.
+    # DM: Y-up, Z-toward-viewer (az=0 = camera at -Z looking toward +Z)
+    # glTF: Y-up, Z-backward (camera looks along its local -Z axis)
+    # Conversion: X unchanged, Y unchanged, Z negated.
     dist = 50
+    lx = vp.look_at.x if vp.look_at else 0
+    ly = vp.look_at.y if vp.look_at else 0
+    lz = vp.look_at.z if vp.look_at else 0
+
     if vp.pos:
-        lx = vp.look_at.x if vp.look_at else 0
-        ly = vp.look_at.y if vp.look_at else 0
-        lz = vp.look_at.z if vp.look_at else 0
-        ox = vp.pos.x - lx; oy = vp.pos.y - ly; oz = vp.pos.z - lz
-        d = math.sqrt(ox*ox+oy*oy+oz*oz)
-        if d > 1e-10:
-            el_r = math.asin(max(-1.0, min(1.0, oy/d)))
-            az_r = math.atan2(ox, -oz)
-        else:
-            el_r = math.radians(vp.el); az_r = math.radians(vp.az)
-        cx = vp.pos.x; cy = vp.pos.y; cz = vp.pos.z
+        # Explicit camera position -- convert DM Z to glTF Z
+        dm_cx = vp.pos.x; dm_cy = vp.pos.y; dm_cz = vp.pos.z
     else:
         el_r = math.radians(vp.el); az_r = math.radians(vp.az)
-        cx =  dist * math.cos(el_r) * math.sin(az_r)
-        cy =  dist * math.sin(el_r)
-        cz = -dist * math.cos(el_r) * math.cos(az_r)
-        lx = vp.look_at.x if vp.look_at else 0
-        ly = vp.look_at.y if vp.look_at else 0
-        lz = vp.look_at.z if vp.look_at else 0
-        cx += lx; cy += ly; cz += lz
+        dm_cx =  dist * math.cos(el_r) * math.sin(az_r) + lx
+        dm_cy =  dist * math.sin(el_r)                  + ly
+        dm_cz = -dist * math.cos(el_r) * math.cos(az_r) + lz
 
-    # Build look-at rotation matrix → quaternion for glTF
-    # Camera looks from (cx,cy,cz) toward (lx,ly,lz), Y-up
+    # Camera position: write in DM world space. Blender glTF import handles conversion.
+    gcx = dm_cx
+    gcy = dm_cy
+    gcz = dm_cz
+    glz = lz
+
+    # Build camera rotation quaternion.
+    # Strategy: compute in Blender Z-up space (where we know the camera position),
+    # then convert quaternion back to glTF Y-up space.
+    #
+    # Blender imports glTF with: bl_x=gltf_x, bl_y=gltf_z, bl_z=gltf_y
+    # So Blender camera pos = (gcx, gcz_neg, gcy) where gcz_neg = -dm_cz (already done above)
+    # i.e. Blender pos = (dm_cx, dm_cz, dm_cy) -- wait, gcz=-dm_cz so Blender Y = gcz = -dm_cz = -41.8 ✓
+    #
+    # In Blender Z-up space, camera is at (gcx, gcz, gcy) looking toward (lx, glz, ly)
+    # Note: Blender bl_y = gltf_z = gcz, Blender bl_z = gltf_y = gcy
+
     def _normalize(v):
         m = math.sqrt(sum(x*x for x in v))
         return tuple(x/m for x in v) if m > 1e-10 else (0,0,1)
     def _cross(a,b): return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])
-    def _dot(a,b): return sum(x*y for x,y in zip(a,b))
+    def _dot(a,b):   return sum(x*y for x,y in zip(a,b))
 
-    fwd = _normalize((lx-cx, ly-cy, lz-cz))
-    # In glTF camera space, camera looks along -Z
-    cam_z = (-fwd[0], -fwd[1], -fwd[2])  # -forward = glTF -Z axis
-    world_up = (0, 1, 0)
-    cam_x = _normalize(_cross(world_up, cam_z))
-    if _dot(cam_x, cam_x) < 1e-10:
-        cam_x = (1, 0, 0)
-    cam_y = _cross(cam_z, cam_x)
+    # Blender camera position: bl_x=gltf_x, bl_y=-gltf_z, bl_z=gltf_y
+    bl_cam    = (gcx, -gcz, gcy)
+    bl_target = (lx,  -glz, ly)
 
-    # Rotation matrix to quaternion (column vectors = camera axes)
-    m = [[cam_x[0], cam_y[0], cam_z[0]],
-         [cam_x[1], cam_y[1], cam_z[1]],
-         [cam_x[2], cam_y[2], cam_z[2]]]
-    trace = m[0][0]+m[1][1]+m[2][2]
+    fwd   = _normalize(tuple(t-c for t,c in zip(bl_target, bl_cam)))
+    right = _normalize(_cross(fwd, (0,0,1)))   # up hint = Z in Blender
+    if _dot(right, right) < 1e-10:
+        right = (1,0,0)
+    up    = _cross(right, fwd)
+
+    # Rotation matrix: columns are right, up, -fwd (camera looks along -Z)
+    cam_z = (-fwd[0], -fwd[1], -fwd[2])
+    mr = [[right[0], up[0], cam_z[0]],
+          [right[1], up[1], cam_z[1]],
+          [right[2], up[2], cam_z[2]]]
+
+    # Matrix to quaternion (Blender Z-up space)
+    trace = mr[0][0]+mr[1][1]+mr[2][2]
     if trace > 0:
         s = 0.5/math.sqrt(trace+1)
-        qw = 0.25/s
-        qx = (m[2][1]-m[1][2])*s
-        qy = (m[0][2]-m[2][0])*s
-        qz = (m[1][0]-m[0][1])*s
-    elif m[0][0]>m[1][1] and m[0][0]>m[2][2]:
-        s = 2*math.sqrt(1+m[0][0]-m[1][1]-m[2][2])
-        qw = (m[2][1]-m[1][2])/s; qx = 0.25*s
-        qy = (m[0][1]+m[1][0])/s; qz = (m[0][2]+m[2][0])/s
-    elif m[1][1]>m[2][2]:
-        s = 2*math.sqrt(1+m[1][1]-m[0][0]-m[2][2])
-        qw = (m[0][2]-m[2][0])/s; qx = (m[0][1]+m[1][0])/s
-        qy = 0.25*s; qz = (m[1][2]+m[2][1])/s
+        bw = 0.25/s
+        bx = (mr[2][1]-mr[1][2])*s; by = (mr[0][2]-mr[2][0])*s; bz = (mr[1][0]-mr[0][1])*s
+    elif mr[0][0]>mr[1][1] and mr[0][0]>mr[2][2]:
+        s = 2*math.sqrt(1+mr[0][0]-mr[1][1]-mr[2][2])
+        bw=(mr[2][1]-mr[1][2])/s; bx=0.25*s; by=(mr[0][1]+mr[1][0])/s; bz=(mr[0][2]+mr[2][0])/s
+    elif mr[1][1]>mr[2][2]:
+        s = 2*math.sqrt(1+mr[1][1]-mr[0][0]-mr[2][2])
+        bw=(mr[0][2]-mr[2][0])/s; bx=(mr[0][1]+mr[1][0])/s; by=0.25*s; bz=(mr[1][2]+mr[2][1])/s
     else:
-        s = 2*math.sqrt(1+m[2][2]-m[0][0]-m[1][1])
-        qw = (m[1][0]-m[0][1])/s; qx = (m[0][2]+m[2][0])/s
-        qy = (m[1][2]+m[2][1])/s; qz = 0.25*s
+        s = 2*math.sqrt(1+mr[2][2]-mr[0][0]-mr[1][1])
+        bw=(mr[1][0]-mr[0][1])/s; bx=(mr[0][2]+mr[2][0])/s; by=(mr[1][2]+mr[2][1])/s; bz=0.25*s
+
+    # Write Blender-space quaternion directly to glTF.
+    # Blender's glTF importer will read it correctly since we computed it
+    # in the same space Blender uses after import.
+    qx = bx; qy = by; qz = bz; qw = bw
 
     gltf['cameras'].append({'type':'perspective',
-                             'perspective':{'yfov':0.785,'aspectRatio':1.0,
+                             'perspective':{'yfov':0.698,'aspectRatio':1.0,
                                             'znear':0.1,'zfar':1000.0}})
     cam_node_idx = len(gltf['nodes'])
     gltf['nodes'].append({
         'name': 'DwarvenCamera',
         'camera': 0,
-        'translation': [round(cx,4), round(cy,4), round(cz,4)],
-        'rotation': [round(qx,6), round(qy,6), round(qz,6), round(qw,6)],
+        'translation': [round(gcx,4), round(gcy,4), round(gcz,4)],
+        'rotation':    [round(qx,6),  round(qy,6),  round(qz,6), round(qw,6)],
     })
-    # Fix scene nodes list (replace placeholder -2 with actual index)
     gltf['scenes'][0]['nodes'] = [i for i in gltf['scenes'][0]['nodes'] if i != -2] + [cam_node_idx]
 
     b64=base64.b64encode(bytes(bin_data)).decode('ascii')
