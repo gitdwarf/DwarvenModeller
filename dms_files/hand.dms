@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dms version="1.0">
+  <metadata created="2026-03-22T03:51:15.890051+00:00" version="1.0"/>
+  <viewpoints>
+    <viewpoint name="default" az="235.0" el="25.0" scale="1.5" look_at="-2.0,18.0,-5.0"/>
+  </viewpoints>
+  <scene>
+    <object id="palm" type="cube" tags="null">
+      <params width="18.0" height="22.0" depth="5.0"/>
+      <transform translate="0.0,0.0,0.0" rotate="-15.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#e8c49a" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+      <object id="thumb_meta" type="cylinder" tags="null">
+        <params radius="2.2" height="9.0" segments="16"/>
+        <transform translate="-10.0,8.0,0.0" rotate="0.0,0.0,30.0" scale="1.0,1.0,1.0"/>
+        <material fill="#e4c090" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="-10.0,8.0,0.0"/>
+        <object id="thumb_prox" type="cylinder" tags="null">
+          <params radius="2.0" height="8.0" segments="16"/>
+          <transform translate="0.0,8.0,0.0" rotate="-8.0,0.0,10.0" scale="1.0,1.0,1.0"/>
+          <material fill="#e8c49a" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+          <attach point="0.0,8.0,0.0"/>
+          <object id="thumb_dist" type="cylinder" tags="null">
+            <params radius="1.7" height="7.0" segments="16"/>
+            <transform translate="0.0,7.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+            <material fill="#e0b888" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+            <attach point="0.0,7.0,0.0"/>
+            <object id="thumb_tip" type="sphere" tags="null">
+              <params radius="2.0" subdivisions="3"/>
+              <transform translate="4.353544684761834,5.415609999357503,-0.7592875069041582" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+              <material fill="#d4a878" stroke="#b88858" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+              <attach point="0.0,7.0,0.0"/>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object id="idx_meta" type="cylinder" tags="null">
+        <params radius="2.0" height="8.0" segments="16"/>
+        <transform translate="-5.0,11.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#e4c090" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="-5.0,11.0,0.0"/>
+        <object id="idx_prox" type="cylinder" tags="null">
+          <params radius="1.9" height="10.0" segments="16"/>
+          <transform translate="0.0,8.0,0.0" rotate="-12.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+          <material fill="#e8c49a" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+          <attach point="0.0,8.0,0.0"/>
+          <object id="idx_mid" type="cylinder" tags="null">
+            <params radius="1.7" height="8.0" segments="16"/>
+            <transform translate="0.0,10.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+            <material fill="#e4c090" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+            <attach point="0.0,10.0,0.0"/>
+            <object id="idx_dist" type="cylinder" tags="null">
+              <params radius="1.5" height="7.0" segments="16"/>
+              <transform translate="0.0,8.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+              <material fill="#e0b888" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+              <attach point="0.0,8.0,0.0"/>
+              <object id="idx_tip" type="sphere" tags="null">
+                <params radius="1.8" subdivisions="3"/>
+                <transform translate="0.0,7.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+                <material fill="#d4a878" stroke="#b88858" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+                <attach point="0.0,7.0,0.0"/>
+              </object>
+            </object>
+          </object>
+        </object>
+        <object id="kn_idx" type="sphere" tags="null">
+          <params radius="2.3" subdivisions="3"/>
+          <transform translate="0.0,8.0,1.5" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+          <material fill="#d8b080" stroke="#b89060" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+          <attach point="0.0,8.0,1.5"/>
+        </object>
+      </object>
+      <object id="mid_meta" type="cylinder" tags="null">
+        <params radius="2.1" height="8.0" segments="16"/>
+        <transform translate="0.0,11.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#e4c090" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,11.0,0.0"/>
+        <object id="mid_prox" type="cylinder" tags="null">
+          <params radius="2.0" height="12.0" segments="16"/>
+          <transform translate="0.0,8.0,0.0" rotate="-10.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+          <material fill="#e8c49a" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+          <attach point="0.0,8.0,0.0"/>
+          <object id="mid_mid" type="cylinder" tags="null">
+            <params radius="1.8" height="9.0" segments="16"/>
+            <transform translate="0.0,12.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+            <material fill="#e4c090" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+            <attach point="0.0,12.0,0.0"/>
+            <object id="mid_dist" type="cylinder" tags="null">
+              <params radius="1.6" height="8.0" segments="16"/>
+              <transform translate="0.0,9.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+              <material fill="#e0b888" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+              <attach point="0.0,9.0,0.0"/>
+              <object id="mid_tip" type="sphere" tags="null">
+                <params radius="1.9" subdivisions="3"/>
+                <transform translate="0.0,8.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+                <material fill="#d4a878" stroke="#b88858" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+                <attach point="0.0,8.0,0.0"/>
+              </object>
+            </object>
+          </object>
+        </object>
+        <object id="kn_mid" type="sphere" tags="null">
+          <params radius="2.3" subdivisions="3"/>
+          <transform translate="0.0,8.0,1.5" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+          <material fill="#d8b080" stroke="#b89060" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+          <attach point="0.0,8.0,1.5"/>
+        </object>
+      </object>
+      <object id="ring_meta" type="cylinder" tags="null">
+        <params radius="1.9" height="7.0" segments="16"/>
+        <transform translate="5.0,11.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#e4c090" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="5.0,11.0,0.0"/>
+        <object id="ring_prox" type="cylinder" tags="null">
+          <params radius="1.8" height="10.0" segments="16"/>
+          <transform translate="0.0,7.0,0.0" rotate="-12.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+          <material fill="#e8c49a" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+          <attach point="0.0,7.0,0.0"/>
+          <object id="ring_mid" type="cylinder" tags="null">
+            <params radius="1.6" height="8.0" segments="16"/>
+            <transform translate="0.0,10.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+            <material fill="#e4c090" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+            <attach point="0.0,10.0,0.0"/>
+            <object id="ring_dist" type="cylinder" tags="null">
+              <params radius="1.4" height="7.0" segments="16"/>
+              <transform translate="0.0,8.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+              <material fill="#e0b888" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+              <attach point="0.0,8.0,0.0"/>
+              <object id="ring_tip" type="sphere" tags="null">
+                <params radius="1.7" subdivisions="3"/>
+                <transform translate="0.0,7.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+                <material fill="#d4a878" stroke="#b88858" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+                <attach point="0.0,7.0,0.0"/>
+              </object>
+            </object>
+          </object>
+        </object>
+        <object id="kn_ring" type="sphere" tags="null">
+          <params radius="2.3" subdivisions="3"/>
+          <transform translate="0.0,7.0,1.5" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+          <material fill="#d8b080" stroke="#b89060" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+          <attach point="0.0,7.0,1.5"/>
+        </object>
+      </object>
+      <object id="pink_meta" type="cylinder" tags="null">
+        <params radius="1.6" height="6.0" segments="16"/>
+        <transform translate="9.0,10.0,0.0" rotate="0.0,0.0,-8.0" scale="1.0,1.0,1.0"/>
+        <material fill="#e4c090" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="9.0,10.0,0.0"/>
+        <object id="pink_prox" type="cylinder" tags="null">
+          <params radius="1.5" height="8.0" segments="16"/>
+          <transform translate="0.0,6.0,0.0" rotate="-15.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+          <material fill="#e8c49a" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+          <attach point="0.0,6.0,0.0"/>
+          <object id="pink_mid" type="cylinder" tags="null">
+            <params radius="1.3" height="6.0" segments="16"/>
+            <transform translate="0.0,8.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+            <material fill="#e4c090" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+            <attach point="0.0,8.0,0.0"/>
+            <object id="pink_dist" type="cylinder" tags="null">
+              <params radius="1.1" height="5.0" segments="16"/>
+              <transform translate="0.0,6.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+              <material fill="#e0b888" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+              <attach point="0.0,6.0,0.0"/>
+              <object id="pink_tip" type="sphere" tags="null">
+                <params radius="1.4" subdivisions="3"/>
+                <transform translate="-0.9665184762609309,6.910726819505893,0.30610523012014124" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+                <material fill="#d4a878" stroke="#b88858" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+                <attach point="0.0,5.0,0.0"/>
+              </object>
+            </object>
+          </object>
+        </object>
+        <object id="kn_pink" type="sphere" tags="null">
+          <params radius="2.3" subdivisions="3"/>
+          <transform translate="0.0,6.0,1.5" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+          <material fill="#d8b080" stroke="#b89060" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+          <attach point="0.0,6.0,1.5"/>
+        </object>
+      </object>
+      <object id="wrist" type="cylinder" tags="null">
+        <params radius="8.0" height="12.0" segments="16"/>
+        <transform translate="0.0,-14.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#e0b890" stroke="#c09070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-14.0,0.0"/>
+      </object>
+    </object>
+    <object id="orb" type="sphere" tags="null">
+      <params radius="12" subdivisions="3"/>
+      <transform translate="0.0,47.0,-13.0" rotate="0.0,0.0,0.0" scale="1.0,0.85,1.0"/>
+      <material fill="#4a8ac8" stroke="#2a5a90" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="orb_glow" type="sphere" tags="null">
+      <params radius="16" subdivisions="3"/>
+      <transform translate="0.0,47.0,-13.0" rotate="0.0,0.0,0.0" scale="1.0,0.85,1.0"/>
+      <material fill="#7ab0e8" stroke="#4a80c0" stroke_width="0.5" opacity="0.25" shininess="0.0"/>
+    </object>
+  </scene>
+  <history>
+    <op cmd="move target=thumb_tip world_to=-18.5,25.5,-9.4 force=true" timestamp="2026-03-31T06:14:25.820607+00:00"/>
+    <op cmd="move target=pink_tip world_to=11.7,33.6,-14.3 force=true" timestamp="2026-03-31T06:14:25.828708+00:00"/>
+    <op cmd="viewpoint az=240 el=15 scale=1.6" timestamp="2026-03-31T06:14:30.804428+00:00"/>
+    <op cmd="viewpoint az=235 el=20 scale=1.5" timestamp="2026-03-31T06:14:44.640782+00:00"/>
+    <op cmd="viewpoint az=235 el=25 scale=1.5" timestamp="2026-03-31T06:14:51.827827+00:00"/>
+  </history>
+</dms>

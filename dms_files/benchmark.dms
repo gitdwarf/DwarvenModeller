@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dms version="1.0">
+  <metadata created="2026-03-30T02:34:21.067356+00:00" version="1.0"/>
+  <viewpoints>
+    <viewpoint name="default" az="210.0" el="25.0" scale="8.0"/>
+  </viewpoints>
+  <scene>
+    <object id="centre" type="octahedron" tags="null">
+      <params radius="5.0"/>
+      <transform translate="0.0,0.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#888888" stroke="#444444" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="shaft_right" type="cylinder" tags="merge_group=axis_right">
+      <params radius="0.8" height="14.0" segments="16"/>
+      <transform translate="14.0,0.0,0.0" rotate="0.0,-0.0,-90.0" scale="1.0,1.0,1.0"/>
+      <material fill="#cc4444" stroke="#882222" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="tip_right" type="octahedron" tags="merge_group=axis_right">
+      <params radius="2.5"/>
+      <transform translate="23.0,0.0,0.0" rotate="0.0,-0.0,-90.0" scale="0.5,1.8,0.5"/>
+      <material fill="#ff4444" stroke="#882222" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="shaft_left" type="cylinder" tags="merge_group=axis_left">
+      <params radius="0.8" height="14.0" segments="16"/>
+      <transform translate="-14.0,0.0,0.0" rotate="0.0,-0.0,90.0" scale="1.0,1.0,1.0"/>
+      <material fill="#4444cc" stroke="#222288" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="tip_left" type="octahedron" tags="merge_group=axis_left">
+      <params radius="2.5"/>
+      <transform translate="-23.0,0.0,0.0" rotate="0.0,-0.0,90.0" scale="0.5,1.8,0.5"/>
+      <material fill="#4444ff" stroke="#222288" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="shaft_up" type="cylinder" tags="merge_group=axis_up">
+      <params radius="0.8" height="14.0" segments="16"/>
+      <transform translate="0.0,14.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#44cc44" stroke="#228822" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="tip_up" type="octahedron" tags="merge_group=axis_up">
+      <params radius="2.5"/>
+      <transform translate="0.0,23.0,0.0" rotate="0.0,0.0,0.0" scale="0.5,1.8,0.5"/>
+      <material fill="#44ff44" stroke="#228822" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="shaft_down" type="cylinder" tags="merge_group=axis_down">
+      <params radius="0.8" height="14.0" segments="16"/>
+      <transform translate="0.0,-14.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#44cccc" stroke="#228888" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="tip_down" type="octahedron" tags="merge_group=axis_down">
+      <params radius="2.5"/>
+      <transform translate="0.0,-23.0,0.0" rotate="0.0,-0.0,180.0" scale="0.5,1.8,0.5"/>
+      <material fill="#44ffff" stroke="#228888" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="shaft_fwd" type="cylinder" tags="merge_group=axis_fwd">
+      <params radius="0.8" height="14.0" segments="16"/>
+      <transform translate="0.0,0.0,14.0" rotate="90.0,-0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#cccc44" stroke="#888822" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="tip_fwd" type="octahedron" tags="merge_group=axis_fwd">
+      <params radius="2.5"/>
+      <transform translate="0.0,0.0,23.0" rotate="90.0,-0.0,0.0" scale="0.5,1.8,0.5"/>
+      <material fill="#ffff44" stroke="#888822" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="shaft_back" type="cylinder" tags="merge_group=axis_back">
+      <params radius="0.8" height="14.0" segments="16"/>
+      <transform translate="0.0,0.0,-14.0" rotate="-90.0,-0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#cc44cc" stroke="#882288" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="tip_back" type="octahedron" tags="merge_group=axis_back">
+      <params radius="2.5"/>
+      <transform translate="0.0,0.0,-23.0" rotate="-90.0,-0.0,0.0" scale="0.5,1.8,0.5"/>
+      <material fill="#ff44ff" stroke="#882288" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+  </scene>
+  <history/>
+</dms>
