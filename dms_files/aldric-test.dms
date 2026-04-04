@@ -24,7 +24,7 @@
       <object id="brow_right" type="cube" tags="pressed_into=skull">
         <params width="4.0" height="1.2" depth="1.5"/>
         <transform translate="-3.2,3.5,9.2" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
-        <material fill="#ddb07a" stroke="#c8a060" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <material fill="#4a7a38" stroke="#c8a060" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
         <attach point="-3.2,3.5,9.2"/>
       </object>
       <object id="brow_left" type="cube" tags="pressed_into=skull">
@@ -126,7 +126,7 @@
       <object id="ear_right" type="sphere" tags="deformed_by=lobe_right,pressed_into=skull">
         <params radius="2.8" subdivisions="3"/>
         <transform translate="-10.2,0.5,1.5" rotate="0.0,0.0,0.0" scale="0.5,1.4,0.4"/>
-        <material fill="#daa878" stroke="#b88858" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <material fill="#4a7a38" stroke="#b88858" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
         <attach point="-10.2,0.5,1.5"/>
       </object>
       <object id="ear_left" type="sphere" tags="deformed_by=lobe_left,pressed_into=skull">
@@ -138,7 +138,7 @@
       <object id="lobe_right" type="sphere" tags="pressed_into=ear_right">
         <params radius="1.0" subdivisions="3"/>
         <transform translate="-10.4,-3.2,1.2" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
-        <material fill="#d4a070" stroke="#b08050" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <material fill="#4a7a38" stroke="#b08050" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
         <attach point="-10.4,-3.2,1.2"/>
       </object>
       <object id="lobe_left" type="sphere" tags="pressed_into=ear_left">
@@ -150,7 +150,7 @@
       <object id="eyebrow_right" type="cube" tags="pressed_into=skull">
         <params width="4.2" height="0.8" depth="0.9"/>
         <transform translate="-3.2,5.1,9.5" rotate="0.0,0.0,8.0" scale="1.0,1.0,1.0"/>
-        <material fill="#3d2010" stroke="#1a0a00" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <material fill="#4a7a38" stroke="#1a0a00" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
         <attach point="-3.2,5.1,9.5"/>
       </object>
       <object id="eyebrow_left" type="cube" tags="pressed_into=skull">
@@ -162,7 +162,7 @@
       <object id="cheek_right" type="sphere" tags="pressed_into=skull">
         <params radius="2.5" subdivisions="3"/>
         <transform translate="-6.0,-0.5,8.2" rotate="0.0,0.0,0.0" scale="1.3,0.7,0.6"/>
-        <material fill="#e8b888" stroke="#c89060" stroke_width="0.5" opacity="0.7" shininess="0.0"/>
+        <material fill="#4a7a38" stroke="#c89060" stroke_width="0.5" opacity="0.7" shininess="0.0"/>
         <attach point="-6.0,-0.5,8.2"/>
       </object>
       <object id="cheek_left" type="sphere" tags="pressed_into=skull">
