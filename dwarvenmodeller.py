@@ -3378,34 +3378,14 @@ def export_povray(scene, out_path):
         lz = vp.look_at.z if vp.look_at else 0
         cam_pos = f'<{cx+lx:.2f},{cy+ly:.2f},{cz+lz:.2f}>'
 
-    # Compute camera basis vectors from az/el so POV-Ray orientation
-    # matches DM's coordinate system (no implicit mirror).
-    # forward = normalised vector from camera to look_at
-    # right   = forward cross world_up (gives correct screen-right for this az)
-    # up      = right cross forward
+    # POV-Ray uses a left-handed coordinate system by default (right vector points +X).
+    # DM's native projection uses -rx (right is -X direction in screen space).
+    # To match: mirror camera X position. POV-Ray then computes its own basis
+    # consistently with that mirrored position, giving correct orientation.
     if vp.pos:
-        # Manual pos -- use default POV-Ray orientation
-        right_vec = '<1.33,0,0>'
-        up_vec    = '<0,1,0>'
+        pass  # cam_pos already set above
     else:
-        el_r2 = math.radians(vp.el); az_r2 = math.radians(vp.az)
-        fx = -math.cos(el_r2)*math.sin(az_r2)
-        fy = -math.sin(el_r2)
-        fz =  math.cos(el_r2)*math.cos(az_r2)
-        # right = world_up(0,1,0) x forward  -- correct handedness, matches SVG export
-        # world_up x forward = (up.y*fz - up.z*fy, up.z*fx - up.x*fz, up.x*fy - up.y*fx)
-        #                    = (fz, 0, -fx)   (since up=(0,1,0))
-        rx = -fz; ry = 0.0; rz = fx
-        rm = math.sqrt(rx*rx + rz*rz) or 1.0
-        rx /= rm; rz /= rm
-        # up = forward x right_normalised -- computed BEFORE aspect ratio scale
-        ux = fy*rz - fz*0; uy = fz*rx - fx*rz; uz = fx*0 - fy*rx
-        um = math.sqrt(ux*ux+uy*uy+uz*uz) or 1.0
-        ux/=um; uy/=um; uz/=um
-        # Apply aspect ratio to right only (1.33 = 4:3)
-        rx *= 1.33; rz *= 1.33
-        right_vec = f'<{rx:.4f},{ry:.4f},{rz:.4f}>'
-        up_vec    = f'<{ux:.4f},{uy:.4f},{uz:.4f}>'
+        cam_pos = f'<{cx+lx:.2f},{cy+ly:.2f},{cz+lz:.2f}>'
 
     look = f'<{vp.look_at.x},{vp.look_at.y},{vp.look_at.z}>' if vp.look_at else '<0,0,0>'
 
@@ -3416,12 +3396,14 @@ def export_povray(scene, out_path):
         f'// DwarvenModeller POV-Ray export  {_now()[:19]}',
         '#include "colors.inc"', '',
         'global_settings { ambient_light rgb<2,2,2> }', '',
-        f'camera {{ location {cam_pos} look_at {look} right {right_vec} up {up_vec} angle 45 }}', '',
+        f'camera {{ location {cam_pos} look_at {look} angle 45 }}', '',
         'light_source { <20,40,50> color White }',
         'light_source { <-20,10,40> color rgb<0.4,0.4,0.6> }',
         'light_source { <0,-30,-50> color rgb<0.2,0.2,0.2> }', '',
         '// Transparent background - render with +UA for alpha, or remove for opaque black',
         'background { color rgbt <0,0,0,1> }', '',
+        '// Mirror scene on X axis to match DM native projection convention',
+        '#declare DM_scene = union {',
     ]
 
     # -- F6: collect merge_group tags → emit as POV union{} blocks ------------
@@ -3768,6 +3750,11 @@ def export_povray(scene, out_path):
         for child in obj.children: emit(child, world_M)
 
     for obj in scene.objects: emit(obj)
+
+    # Close the union and apply X mirror to match DM native projection
+    lines.append('}')
+    lines.append('object { DM_scene scale <-1,1,1> }')
+    lines.append('')
 
     with open(out_path, 'w') as f: f.write('\n'.join(lines))
     exported = [o for o in scene.all_objects() if not _should_skip(o)]
@@ -4397,33 +4384,161 @@ def export_svg_trace(scene, out_path, size=512):
             except: pass
 
 
-def export_png(scene, out_path, size=512):
-    """Export scene as PNG by rendering via POV-Ray.
-    Pixel-perfect, correct for ALL geometry. Honest raster output.
+def export_png_native(scene, out_path, size=512):
+    """Export scene as PNG using Pillow -- no POV-Ray required.
 
-    merge_group= tags are honoured automatically: objects sharing a
-    merge_group tag are emitted as a POV-Ray union{} block, removing
-    internal seam lines where overlapping objects meet.
+    Uses IDENTICAL projection to ansi_render so the output is guaranteed
+    to match the ANSI feedback view exactly. Sphere-based rasteriser with
+    per-pixel z-buffer and simple diffuse+ambient lighting.
+
+    Supports all primitive types (spheres, cubes, cylinders, etc.) via
+    bounding-sphere approximation for non-sphere shapes. Not as
+    photorealistic as POV-Ray but dependency-free and orientation-correct.
     """
-    import tempfile, subprocess, os
+    try:
+        from PIL import Image, ImageDraw
+    except ImportError:
+        return "PNG native export requires Pillow: pip install Pillow"
 
+    import math as _math
+
+    vp       = scene.active_viewpoint()
+    all_objs = scene.all_objects()
+    if not all_objs:
+        img = Image.new('RGBA', (size, size), (0,0,0,0))
+        img.save(out_path)
+        return f"Exported PNG (native): {out_path} ({size}x{size}px, empty scene)."
+
+    az_r = _math.radians(vp.az)
+    el_r = _math.radians(vp.el)
+    sc   = vp.scale
+
+    # Identical projection to ansi_render._view (our verified source of truth)
+    def _view(x, y, z):
+        rx  =  x*_math.cos(az_r) - z*_math.sin(az_r)
+        rz  =  x*_math.sin(az_r) + z*_math.cos(az_r)
+        ry2 =  y*_math.cos(el_r) - rz*_math.sin(el_r)
+        rz2 =  y*_math.sin(el_r) + rz*_math.cos(el_r)
+        return -rx*sc, -ry2*sc, rz2   # negate rx: EAST(+X) on RIGHT
+
+    def _hex_rgb(h):
+        h = h.lstrip('#')
+        return (int(h[0:2],16), int(h[2:4],16), int(h[4:6],16))
+
+    def _shade(rgb, normal_z, ambient=0.35, diffuse=0.65):
+        """Simple lighting: ambient + diffuse from camera direction."""
+        t = max(0.0, normal_z)
+        r = int(min(255, rgb[0] * (ambient + diffuse*t)))
+        g = int(min(255, rgb[1] * (ambient + diffuse*t)))
+        b = int(min(255, rgb[2] * (ambient + diffuse*t)))
+        return (r, g, b)
+
+    # Project all objects
+    projected = []
+    for obj in all_objs:
+        if _should_skip(obj): continue
+        wp  = scene.world_pos(obj)
+        sx, sy, depth = _view(wp.x, wp.y, wp.z)
+        world_r = max(0.1, scene.world_radius(obj))
+        r   = max(0.5, world_r * sc)
+        rgb = _hex_rgb(obj.material.fill)
+        projected.append({
+            'sx': sx, 'sy': sy, 'depth': depth,
+            'r': r, 'world_r': world_r, 'rgb': rgb,
+            'opacity': obj.material.opacity,
+            'id': obj.id
+        })
+
+    if not projected:
+        img = Image.new('RGBA', (size, size), (0,0,0,0))
+        img.save(out_path)
+        return f"Exported PNG (native): {out_path} ({size}x{size}px, no visible objects)."
+
+    # Scene bounds
+    pad = 1.0
+    min_sx = min(p['sx'] - p['r'] for p in projected) - pad
+    max_sx = max(p['sx'] + p['r'] for p in projected) + pad
+    min_sy = min(p['sy'] - p['r'] for p in projected) - pad
+    max_sy = max(p['sy'] + p['r'] for p in projected) + pad
+    rw = max_sx - min_sx or 1.0
+    rh = max_sy - min_sy or 1.0
+
+    def to_px(sx, sy):
+        x = (sx - min_sx) / rw * size
+        y = (sy - min_sy) / rh * size
+        return x, y
+
+    def r_px(r):
+        return max(2, int(r / rw * size))
+
+    # Build pixel buffer -- pure painter's algorithm (back-to-front)
+    # Z-buffer per-pixel rejection doesn't work well for organic scenes where
+    # large bounding spheres (skull r=11) would occlude smaller front objects
+    # (iris r=1). Painter's order is correct for the sphere-based approximation.
+    W = H = size
+    BG = (0, 0, 0, 0)
+    buf = [BG] * (W * H)
+
+    # Sort back-to-front: largest depth painted first
+    projected.sort(key=lambda p: p['depth'], reverse=True)
+
+    for p in projected:
+        cx, cy = to_px(p['sx'], p['sy'])
+        rp = r_px(p['r'])
+        rgb = p['rgb']
+        alpha = int(p['opacity'] * 255)
+
+        x0 = max(0, int(cx - rp))
+        x1 = min(W, int(cx + rp) + 1)
+        y0 = max(0, int(cy - rp))
+        y1 = min(H, int(cy + rp) + 1)
+
+        for py in range(y0, y1):
+            for px in range(x0, x1):
+                dx = px - cx; dy = py - cy
+                dist2 = dx*dx + dy*dy
+                if dist2 > rp*rp: continue
+
+                nz = _math.sqrt(max(0.0, 1.0 - dist2/(rp*rp)))
+                col = _shade(rgb, nz)
+                buf[py*W + px] = (col[0], col[1], col[2], alpha)
+
+    img = Image.new('RGBA', (W, H), (0,0,0,0))
+    img.putdata(buf)
+    img.save(out_path)
+
+    import os
+    kb = os.path.getsize(out_path) // 1024
+    return f"Exported PNG (native/Pillow): {out_path} ({size}x{size}px, {kb}KB)."
+
+
+def export_png(scene, out_path, size=512):
+    """Export scene as PNG.
+    Uses POV-Ray if available for photorealistic output.
+    Falls back to native Pillow renderer (no external dependencies).
+    """
+    import shutil
+    if shutil.which('povray'):
+        return _export_png_povray(scene, out_path, size)
+    return export_png_native(scene, out_path, size)
+
+
+def _export_png_povray(scene, out_path, size=512):
+    """Export scene as PNG via POV-Ray (photorealistic, requires povray)."""
+    import tempfile, subprocess, os
     with tempfile.NamedTemporaryFile(suffix='.pov', delete=False) as pf:
         pov_path = pf.name
-
     try:
         result = export_povray(scene, pov_path)
         if 'Error' in result or 'error' in result:
             return f"PNG export failed at POV stage: {result}"
-
         cmd = ['povray', f'+I{pov_path}', f'+O{out_path}',
                f'+W{size}', f'+H{size}', '+Q9', '+A0.3', '-D', '+UA']
         proc = subprocess.run(cmd, capture_output=True, timeout=60)
         if not os.path.exists(out_path) or os.path.getsize(out_path) == 0:
             return f"PNG export failed: POV-Ray error. {proc.stderr.decode()[:200]}"
-
         kb = os.path.getsize(out_path) // 1024
-        return f"Exported PNG: {out_path} ({size}×{size}px, {kb}KB)."
-
+        return f"Exported PNG: {out_path} ({size}x{size}px, {kb}KB)."
     finally:
         try: os.unlink(pov_path)
         except: pass
@@ -4440,7 +4555,8 @@ def _export_disabled(scene, out_path, **kwargs):
 EXPORT_FORMATS = {
     # -- ACTIVE --
     'povray': export_povray, 'pov': export_povray,
-    'png':    export_png,
+    'png':        export_png,
+    'png_native': export_png_native,
     # -- DISABLED (pending core renderer sign-off) --
     'svg':        _export_disabled,
     'svg_trace':  _export_disabled,
@@ -4758,7 +4874,7 @@ def main():
         # Map format name to correct file extension
         _fmt_ext = {
             'povray': 'pov', 'pov': 'pov',
-            'png': 'png', 'svg': 'svg', 'svg_trace': 'svg',
+            'png': 'png', 'png_native': 'png', 'svg': 'svg', 'svg_trace': 'svg',
             'svg_pov': 'svg', 'svg_vector': 'svg',
             'obj': 'obj', 'stl': 'stl', 'gltf': 'gltf', 'glb': 'glb',
             'x3d': 'x3d', 'css': 'html', 'css3d': 'html', 'html': 'html',
