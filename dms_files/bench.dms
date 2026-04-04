@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dms version="1.0">
+  <metadata created="2026-04-04T18:39:43.899719+00:00" version="1.0"/>
+  <viewpoints>
+    <viewpoint name="default" az="0.0" el="0.0" scale="14.0"/>
+  </viewpoints>
+  <scene>
+    <object id="centre" type="cube" tags="null">
+      <params width="10.0" height="10.0" depth="10.0"/>
+      <transform translate="0.0,0.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#888888" stroke="#444444" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="face_front" type="cube" tags="null">
+      <params width="9.8" height="9.8" depth="0.3"/>
+      <transform translate="0.0,0.0,5.15" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#cc2222" stroke="#881111" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="face_back" type="cube" tags="null">
+      <params width="9.8" height="9.8" depth="0.3"/>
+      <transform translate="0.0,0.0,-5.15" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#2222cc" stroke="#111188" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="face_right" type="cube" tags="null">
+      <params width="0.3" height="9.8" depth="9.8"/>
+      <transform translate="5.15,0.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#22cc22" stroke="#118811" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="face_left" type="cube" tags="null">
+      <params width="0.3" height="9.8" depth="9.8"/>
+      <transform translate="-5.15,0.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#cccc22" stroke="#888811" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="face_up" type="cube" tags="null">
+      <params width="9.8" height="0.3" depth="9.8"/>
+      <transform translate="0.0,5.15,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#22cccc" stroke="#118888" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="face_down" type="cube" tags="null">
+      <params width="9.8" height="0.3" depth="9.8"/>
+      <transform translate="0.0,-5.15,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#cc22cc" stroke="#881188" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="rod_front" type="cylinder" tags="null">
+      <params radius="1.0" height="12.0" segments="16"/>
+      <transform translate="0.0,0.0,11.0" rotate="90.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#cc2222" stroke="#881111" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="rod_back" type="cylinder" tags="null">
+      <params radius="1.0" height="12.0" segments="16"/>
+      <transform translate="0.0,0.0,-11.0" rotate="270.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#2222cc" stroke="#111188" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="rod_right" type="cylinder" tags="null">
+      <params radius="1.0" height="12.0" segments="16"/>
+      <transform translate="11.0,0.0,0.0" rotate="0.0,0.0,270.0" scale="1.0,1.0,1.0"/>
+      <material fill="#22cc22" stroke="#118811" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="rod_left" type="cylinder" tags="null">
+      <params radius="1.0" height="12.0" segments="16"/>
+      <transform translate="-11.0,0.0,0.0" rotate="0.0,0.0,90.0" scale="1.0,1.0,1.0"/>
+      <material fill="#cccc22" stroke="#888811" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="rod_up" type="cylinder" tags="null">
+      <params radius="1.0" height="12.0" segments="16"/>
+      <transform translate="0.0,11.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <material fill="#22cccc" stroke="#118888" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+    <object id="rod_down" type="cylinder" tags="null">
+      <params radius="1.0" height="12.0" segments="16"/>
+      <transform translate="0.0,-11.0,0.0" rotate="0.0,0.0,180.0" scale="1.0,1.0,1.0"/>
+      <material fill="#cc22cc" stroke="#881188" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+    </object>
+  </scene>
+  <history>
+    <op cmd="add type=cube id=centre width=10 height=10 depth=10 fill=#888888 stroke=#444444" timestamp="2026-04-04T18:39:44.111287+00:00"/>
+    <op cmd="add type=cube id=face_front width=9.8 height=9.8 depth=0.3 fill=#cc2222 stroke=#881111" timestamp="2026-04-04T18:39:44.333267+00:00"/>
+    <op cmd="move target=face_front to=0,0,5.15 force=true" timestamp="2026-04-04T18:39:44.546677+00:00"/>
+    <op cmd="add type=cube id=face_back width=9.8 height=9.8 depth=0.3 fill=#2222cc stroke=#111188" timestamp="2026-04-04T18:39:44.796226+00:00"/>
+    <op cmd="move target=face_back to=0,0,-5.15 force=true" timestamp="2026-04-04T18:39:45.024201+00:00"/>
+    <op cmd="add type=cube id=face_right width=0.3 height=9.8 depth=9.8 fill=#22cc22 stroke=#118811" timestamp="2026-04-04T18:39:45.260723+00:00"/>
+    <op cmd="move target=face_right to=5.15,0,0 force=true" timestamp="2026-04-04T18:39:45.518528+00:00"/>
+    <op cmd="add type=cube id=face_left width=0.3 height=9.8 depth=9.8 fill=#cccc22 stroke=#888811" timestamp="2026-04-04T18:39:45.741859+00:00"/>
+    <op cmd="move target=face_left to=-5.15,0,0 force=true" timestamp="2026-04-04T18:39:45.964031+00:00"/>
+    <op cmd="add type=cube id=face_up width=9.8 height=0.3 depth=9.8 fill=#22cccc stroke=#118888" timestamp="2026-04-04T18:39:46.210157+00:00"/>
+    <op cmd="move target=face_up to=0,5.15,0 force=true" timestamp="2026-04-04T18:39:46.427776+00:00"/>
+    <op cmd="add type=cube id=face_down width=9.8 height=0.3 depth=9.8 fill=#cc22cc stroke=#881188" timestamp="2026-04-04T18:39:46.646090+00:00"/>
+    <op cmd="move target=face_down to=0,-5.15,0 force=true" timestamp="2026-04-04T18:39:46.892509+00:00"/>
+    <op cmd="add type=cylinder id=rod_front radius=1 height=12 fill=#cc2222 stroke=#881111" timestamp="2026-04-04T18:39:47.115364+00:00"/>
+    <op cmd="rotate target=rod_front x=90 force=true" timestamp="2026-04-04T18:39:47.336645+00:00"/>
+    <op cmd="move target=rod_front to=0,0,11 force=true" timestamp="2026-04-04T18:39:47.597024+00:00"/>
+    <op cmd="add type=cylinder id=rod_back radius=1 height=12 fill=#2222cc stroke=#111188" timestamp="2026-04-04T18:39:47.813458+00:00"/>
+    <op cmd="rotate target=rod_back x=-90 force=true" timestamp="2026-04-04T18:39:48.029130+00:00"/>
+    <op cmd="move target=rod_back to=0,0,-11 force=true" timestamp="2026-04-04T18:39:48.249967+00:00"/>
+    <op cmd="add type=cylinder id=rod_right radius=1 height=12 fill=#22cc22 stroke=#118811" timestamp="2026-04-04T18:39:48.501288+00:00"/>
+    <op cmd="rotate target=rod_right z=-90 force=true" timestamp="2026-04-04T18:39:48.722276+00:00"/>
+    <op cmd="move target=rod_right to=11,0,0 force=true" timestamp="2026-04-04T18:39:48.938419+00:00"/>
+    <op cmd="add type=cylinder id=rod_left radius=1 height=12 fill=#cccc22 stroke=#888811" timestamp="2026-04-04T18:39:49.193755+00:00"/>
+    <op cmd="rotate target=rod_left z=90 force=true" timestamp="2026-04-04T18:39:49.415134+00:00"/>
+    <op cmd="move target=rod_left to=-11,0,0 force=true" timestamp="2026-04-04T18:39:49.633226+00:00"/>
+    <op cmd="add type=cylinder id=rod_up radius=1 height=12 fill=#22cccc stroke=#118888" timestamp="2026-04-04T18:39:49.854350+00:00"/>
+    <op cmd="move target=rod_up to=0,11,0 force=true" timestamp="2026-04-04T18:39:50.099681+00:00"/>
+    <op cmd="add type=cylinder id=rod_down radius=1 height=12 fill=#cc22cc stroke=#881188" timestamp="2026-04-04T18:39:50.320505+00:00"/>
+    <op cmd="rotate target=rod_down z=180 force=true" timestamp="2026-04-04T18:39:50.543987+00:00"/>
+    <op cmd="move target=rod_down to=0,-11,0 force=true" timestamp="2026-04-04T18:39:50.759780+00:00"/>
+    <op cmd="viewpoint az=0 el=0 scale=14" timestamp="2026-04-04T18:39:51.008450+00:00"/>
+  </history>
+</dms>
