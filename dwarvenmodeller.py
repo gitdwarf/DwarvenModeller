@@ -2812,7 +2812,10 @@ def ansi_render(scene, char_w=72, char_h=32):
         rz  =  x*math.sin(az_r) + z*math.cos(az_r)
         ry2 =  y*math.cos(el_r) - rz*math.sin(el_r)
         rz2 =  y*math.sin(el_r) + rz*math.cos(el_r)
-        return -rx*sc, -ry2*sc, rz2  # negate rx: EAST(+X) appears on RIGHT of screen
+        # Negate depth when camera is on -Z side (cos(az)*cos(el) > 0)
+        # so that +Z objects (facing camera at az=0) are correctly treated as closer.
+        depth = -rz2 if math.cos(az_r)*math.cos(el_r) > 0 else rz2
+        return -rx*sc, -ry2*sc, depth
 
     def _proj_vec(dx, dy, dz):
         """Project a DIRECTION vector (no translation) and return |screen_x|, |screen_y|."""
@@ -3751,9 +3754,10 @@ def export_povray(scene, out_path):
 
     for obj in scene.objects: emit(obj)
 
-    # Close the union and apply X mirror to match DM native projection
+    # Close the union and apply 180° Y rotation to match DM native projection
+    # (AC confirmed: one 180° rotation fixes both the X mirror and Z flip issues)
     lines.append('}')
-    lines.append('object { DM_scene scale <-1,1,1> }')
+    lines.append('object { DM_scene rotate <0,180,0> }')
     lines.append('')
 
     with open(out_path, 'w') as f: f.write('\n'.join(lines))
@@ -4419,7 +4423,8 @@ def export_png_native(scene, out_path, size=512):
         rz  =  x*_math.sin(az_r) + z*_math.cos(az_r)
         ry2 =  y*_math.cos(el_r) - rz*_math.sin(el_r)
         rz2 =  y*_math.sin(el_r) + rz*_math.cos(el_r)
-        return -rx*sc, -ry2*sc, rz2   # negate rx: EAST(+X) on RIGHT
+        depth = -rz2 if _math.cos(az_r)*_math.cos(el_r) > 0 else rz2
+        return -rx*sc, -ry2*sc, depth
 
     def _hex_rgb(h):
         h = h.lstrip('#')
