@@ -2892,6 +2892,7 @@ def ansi_render(scene, char_w=72, char_h=32):
     zbuf = [[1e18] * pw for _ in range(ph)]   # smaller depth = closer = wins
 
     for p in projected:
+        if p['obj'].type == 'text': continue   # handled separately below
         cx = int((p['sx'] - min_sx) / w * pw)
         cy = int((p['sy'] - min_sy) / h * ph)
         rx = max(1, int(p['srx'] / w * pw))
@@ -2913,13 +2914,35 @@ def ansi_render(scene, char_w=72, char_h=32):
     RST = '\033[0m'
     def fg(r, g, b): return f'\033[38;2;{r};{g};{b}m'
     def bg(r, g, b): return f'\033[48;2;{r};{g};{b}m'
+
+    # Text overlay: char_buf stores (char, r, g, b) or None per cell
+    # Text objects are skipped in the sphere loop and rendered here as actual glyphs
+    char_buf = [[None] * pw for _ in range(char_h)]
+    for p in sorted(projected, key=lambda x: x['depth'], reverse=True):
+        obj = p['obj']
+        if obj.type != 'text': continue
+        content = str(obj.params.get('content', obj.id))
+        r, g, b = p['rgb']
+        cx = int((p['sx'] - min_sx) / w * pw)
+        cy_char = max(0, min(char_h - 1, int((p['sy'] - min_sy) / h * char_h)))
+        col_start = max(0, cx - len(content) // 2)
+        for i, ch in enumerate(content):
+            col = col_start + i
+            if 0 <= col < pw:
+                char_buf[cy_char][col] = (ch, r, g, b)
+
     out = []
     for cy in range(char_h):
         line = ''
         for cx in range(pw):
-            ur, ug, ub = buf[cy * 2][cx]
-            lr, lg, lb = buf[cy * 2 + 1][cx]
-            line += fg(ur, ug, ub) + bg(lr, lg, lb) + '▀'
+            cell = char_buf[cy][cx]
+            if cell is not None:
+                ch, r, g, b = cell
+                line += fg(r, g, b) + ch
+            else:
+                ur, ug, ub = buf[cy * 2][cx]
+                lr, lg, lb = buf[cy * 2 + 1][cx]
+                line += fg(ur, ug, ub) + bg(lr, lg, lb) + '▀'
         out.append(line + RST)
     seen = {}
     for p in projected:
@@ -4451,7 +4474,9 @@ def export_png_native(scene, out_path, size=512):
             'sx': sx, 'sy': sy, 'depth': depth,
             'r': r, 'world_r': world_r, 'rgb': rgb,
             'opacity': obj.material.opacity,
-            'id': obj.id
+            'id': obj.id,
+            'label': obj.params.get('content') if obj.type == 'text' else None,
+            'font_size': float(obj.params.get('size', 5.0)) if obj.type == 'text' else None,
         })
 
     if not projected:
@@ -4476,13 +4501,10 @@ def export_png_native(scene, out_path, size=512):
     def r_px(r):
         return max(2, int(r / rw * size))
 
-    # Build pixel buffer -- pure painter's algorithm (back-to-front)
-    # Z-buffer per-pixel rejection doesn't work well for organic scenes where
-    # large bounding spheres (skull r=11) would occlude smaller front objects
-    # (iris r=1). Painter's order is correct for the sphere-based approximation.
+    # Build image -- pure painter's algorithm (back-to-front)
     W = H = size
-    BG = (0, 0, 0, 0)
-    buf = [BG] * (W * H)
+    img = Image.new('RGBA', (W, H), (0,0,0,0))
+    draw_img = ImageDraw.Draw(img)
 
     # Sort back-to-front: largest depth painted first
     projected.sort(key=lambda p: p['depth'], reverse=True)
@@ -4492,24 +4514,46 @@ def export_png_native(scene, out_path, size=512):
         rp = r_px(p['r'])
         rgb = p['rgb']
         alpha = int(p['opacity'] * 255)
+        rgba = (rgb[0], rgb[1], rgb[2], alpha)
 
-        x0 = max(0, int(cx - rp))
-        x1 = min(W, int(cx + rp) + 1)
-        y0 = max(0, int(cy - rp))
-        y1 = min(H, int(cy + rp) + 1)
+        if p['label'] is not None:
+            # Text primitive -- render as label with background rect
+            label = p['label']
+            font_px = max(10, int(p['font_size'] / rw * size * 8))
+            try:
+                from PIL import ImageFont
+                font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', font_px)
+            except Exception:
+                try:
+                    font = ImageFont.load_default()
+                except Exception:
+                    font = None
+            if font:
+                bbox = draw_img.textbbox((0,0), label, font=font)
+            else:
+                bbox = (0, 0, len(label)*font_px//2, font_px)
+            tw = bbox[2] - bbox[0]; th = bbox[3] - bbox[1]
+            tx = int(cx) - tw//2; ty = int(cy) - th//2
+            pad2 = 3
+            draw_img.rectangle([tx-pad2, ty-pad2, tx+tw+pad2, ty+th+pad2], fill=rgba)
+            lum = 0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2]
+            text_col = (0,0,0,255) if lum > 128 else (255,255,255,255)
+            draw_img.text((tx, ty), label, font=font, fill=text_col)
+        else:
+            # Sphere primitive -- draw pixel by pixel
+            x0 = max(0, int(cx - rp))
+            x1 = min(W, int(cx + rp) + 1)
+            y0 = max(0, int(cy - rp))
+            y1 = min(H, int(cy + rp) + 1)
+            for py in range(y0, y1):
+                for px in range(x0, x1):
+                    dx = px - cx; dy = py - cy
+                    dist2 = dx*dx + dy*dy
+                    if dist2 > rp*rp: continue
+                    nz = _math.sqrt(max(0.0, 1.0 - dist2/(rp*rp)))
+                    col = _shade(rgb, nz)
+                    img.putpixel((px, py), (col[0], col[1], col[2], alpha))
 
-        for py in range(y0, y1):
-            for px in range(x0, x1):
-                dx = px - cx; dy = py - cy
-                dist2 = dx*dx + dy*dy
-                if dist2 > rp*rp: continue
-
-                nz = _math.sqrt(max(0.0, 1.0 - dist2/(rp*rp)))
-                col = _shade(rgb, nz)
-                buf[py*W + px] = (col[0], col[1], col[2], alpha)
-
-    img = Image.new('RGBA', (W, H), (0,0,0,0))
-    img.putdata(buf)
     img.save(out_path)
 
     import os
