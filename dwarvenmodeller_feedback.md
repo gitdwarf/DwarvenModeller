@@ -843,3 +843,52 @@ correctly across the full range. Tilt just needs the same coverage.
 Also: "Scene right tilts toward you" at az=330 is the el=0 tilt note
 firing for the az component -- that's slightly confusing. At el=0 there
 should be NO tilt note. The horizontal rotation already covers left/right.
+
+
+---
+
+## Session 2026-04-06 -- DMS file audit and fixes
+
+### Viewpoint convention confirmed fixed
+az=0 now correctly shows front face (F) of bench dead-on.
+az=330 el=15 is confirmed as the canonical portrait angle for Aldric
+(scene rotated left, facing toward you).
+
+### Eye press chain now correct on aldric.dms and aldric-test.dms
+iris pressed into white_left/white_right with depth=0.8
+pupil pressed into iris_left/iris_right with depth=0.9
+carve=true added to white_left, white_right, iris_left, iris_right
+POV-Ray will render proper difference{} carving for all eye layers.
+
+### benchmark.dms rebuilt
+Central octahedron + 6 coloured rods (one per axis) + native text labels
+at rod tips. az=330 el=25. Replaces old floating-text-only version.
+
+### benchmark-text.dms created (new file)
+Same as bench.dms but with full-word labels (FRONT/BACK/LEFT/RIGHT/UP/DOWN)
+instead of single letters. Useful for human-readable orientation testing.
+
+### bench.dms L/R visual swap confirmed as renderer bug
+rod_right is correctly at +X in the data.
+Renderer inverts X axis so it appears on screen-left.
+This is the known mirror bug -- data is correct, renderer needs the fix.
+
+### Files fixed and delivered
+aldric.dms, aldric-test.dms, bench.dms, benchmark.dms, benchmark-text.dms,
+hand.dms, box3.dms, knight.dms -- all in dms_all_fixed.zip
+
+
+---
+
+## box3.dms viewpoint note -- 2026-04-06
+
+box3 viewpoint set to az=160 el=32 scale=1.5 to show red doc on camera-left.
+
+Due to the current X-axis inversion bug in the renderer, az=160 was needed
+rather than the geometrically correct mirror of az=12.5 (which would be az=347.5).
+
+Once the renderer X-inversion is fixed, the correct viewpoint for
+"red on left, box corner bottom-right, open flap visible" will be approximately
+az=12.5 el=32 scale=1.5 -- the natural front-facing angle.
+
+This file should be revisited after the renderer fix.
