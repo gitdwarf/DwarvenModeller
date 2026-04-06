@@ -2553,9 +2553,35 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
         lines.append('')
         return '\n'.join(lines)
 
+    import math as _math
+    _az_r = _math.radians(vp.az)
+    # User rotates the scene-sphere; camera is fixed.
+    # cos(az): +1 = scene faces you (+Z toward viewer), -1 = scene faces away
+    # sin(az): +1 = scene rotated right (+Z points right), -1 = scene rotated left
+    _facing = _math.cos(_az_r)
+    _lateral = _math.sin(_az_r)
+
+    _thr = 0.4
+    if abs(_facing) > (1 - _thr) and abs(_lateral) < _thr:
+        if _facing > 0:
+            _orient = 'Scene faces you. Scene left is your right, scene right is your left.'
+        else:
+            _orient = 'Scene faces away. Scene left is your left, scene right is your right.'
+    elif abs(_lateral) > (1 - _thr) and abs(_facing) < _thr:
+        if _lateral > 0:
+            _orient = 'Scene faces right. Scene left is toward you, scene right is away from you.'
+        else:
+            _orient = 'Scene faces left. Scene left is away from you, scene right is toward you.'
+    else:
+        _fd = 'toward you' if _facing > 0 else 'away'
+        _side = 'right' if _lateral > 0 else 'left'
+        _lr = 'Scene left tilts toward you.' if _lateral > 0 else 'Scene right tilts toward you.'
+        _orient = f'Scene rotated {_side}, facing {_fd}. {_lr}'
+
     lines += ['',
               f'Scene contains {len(all_objs)} object{"s" if len(all_objs)!=1 else ""}.',
               f'Viewpoint: azimuth {vp.az}°, elevation {vp.el}°, scale {vp.scale}.',
+              f'  {_orient}',
               '']
 
     # -- Object tree ----------------------------------------------------------─
