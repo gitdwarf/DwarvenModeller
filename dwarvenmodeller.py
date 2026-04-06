@@ -2575,30 +2575,33 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
     else:
         _fd = 'toward you' if _facing > 0 else 'away'
         _side = 'right' if _lateral > 0 else 'left'
-        _lr = 'Scene left tilts toward you.' if _lateral > 0 else 'Scene right tilts toward you.'
-        _orient = f'Scene rotated {_side}, facing {_fd}. {_lr}'
+        # Describe which side of the scene is closer to you due to the rotation
+        _closer = 'Scene left side is closest to you.' if _lateral > 0 else 'Scene right side is closest to you.'
+        _orient = f'Scene rotated {_side}, facing {_fd}. {_closer}'
 
-    # Elevation description -- what the tilt means for the user
+    # Elevation description -- full -90 to +90 range, plain language
     _el = vp.el
     if abs(_el) < 5:
-        _elev = 'Viewing straight on (no vertical tilt). Top of scene is up, bottom is down.'
+        _elev = 'Viewing straight on, no vertical tilt. Top of scene is up, bottom is down.'
     elif _el > 0:
         if _el < 20:
-            _elev = f'Looking slightly down ({_el}°). Scene top tilts away, scene bottom tilts toward you.'
+            _elev = 'Looking slightly down. Scene top tilts away from you, scene bottom tilts toward you.'
         elif _el < 50:
-            _elev = f'Looking down from above ({_el}°). You see more of the scene top than bottom.'
+            _elev = 'Looking down from above. You see more of the scene top than the bottom.'
         elif _el < 80:
-            _elev = f'Steep top-down view ({_el}°). Scene top faces you directly, sides visible.'
+            _elev = 'Steep top-down view. Scene top faces you almost directly, sides visible around the edges.'
         else:
-            _elev = f'Nearly straight down ({_el}°). Top of scene faces you, left/right still apply.'
+            _elev = 'Looking almost straight down. Scene top faces you. Left/right still apply horizontally.'
     else:
         _el_abs = abs(_el)
         if _el_abs < 20:
-            _elev = f'Looking slightly up ({_el_abs}°). Scene bottom tilts away, scene top tilts toward you.'
+            _elev = 'Looking slightly up. Scene bottom tilts away from you, scene top tilts toward you.'
         elif _el_abs < 50:
-            _elev = f'Looking up from below ({_el_abs}°). You see more of the scene bottom than top.'
+            _elev = 'Looking up from below. You see more of the scene bottom than the top.'
+        elif _el_abs < 80:
+            _elev = 'Steep bottom-up view. Scene bottom faces you almost directly, sides visible around the edges.'
         else:
-            _elev = f'Steep bottom-up view ({_el_abs}°). Scene bottom faces you directly.'
+            _elev = 'Looking almost straight up. Scene bottom faces you. Left/right still apply horizontally.'
 
     lines += ['',
               f'Scene contains {len(all_objs)} object{"s" if len(all_objs)!=1 else ""}.',
