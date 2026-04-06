@@ -2614,6 +2614,46 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
     lines.append('-- Objects --')
     lines.append('')
 
+    def _felt_position(wp):
+        """Describe world position in sculptor's felt space -- relative to current viewpoint.
+        No camera language. Just: where would your hands find this in the clay?
+        Projects world coords through az/el rotation and describes in near/far/left/right/up/down terms.
+        """
+        import math as _m
+        _az = _m.radians(vp.az); _el = _m.radians(vp.el)
+        # Rotate world point into view space (same rotation as _view())
+        rx  =  wp.x*_m.cos(_az) - wp.z*_m.sin(_az)
+        rz  =  wp.x*_m.sin(_az) + wp.z*_m.cos(_az)
+        ry2 =  wp.y*_m.cos(_el) - rz*_m.sin(_el)
+        rz2 =  wp.y*_m.sin(_el) + rz*_m.cos(_el)
+        # rx  = left(-)/right(+) in felt space
+        # ry2 = down(-)/up(+) in felt space
+        # rz2 = away(-)/near(+) in felt space (larger rz2 = closer to you)
+
+        # Threshold scales with scene extent -- small offset in a large scene is "centre"
+        positions = [scene.world_pos(o) for o in all_objs]
+        if positions:
+            xs = [p.x for p in positions]; ys = [p.y for p in positions]; zs = [p.z for p in positions]
+            scene_r = max(max(xs)-min(xs), max(ys)-min(ys), max(zs)-min(zs), 1.0) / 2
+        else:
+            scene_r = 10.0
+        thr = scene_r * 0.15  # 15% of half-scene-width = "close enough to centre"
+
+        def _lr(v):
+            if abs(v) < thr: return None
+            return 'to your right' if v > 0 else 'to your left'
+        def _ud(v):
+            if abs(v) < thr: return None
+            return 'above centre' if v > 0 else 'below centre'
+        def _nd(v):
+            if abs(v) < thr: return None
+            return 'near side' if v > 0 else 'far side'
+
+        parts = [p for p in [_ud(ry2), _lr(rx), _nd(rz2)] if p]
+        if not parts:
+            return 'at centre of scene'
+        return ', '.join(parts)
+
     def describe(obj, depth=0, parent_M=None):
         local_M = obj.transform.matrix()
         world_M = (parent_M * local_M) if parent_M else local_M
@@ -2632,6 +2672,7 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
         else:
             lines.append(f"{indent}  Size: stretched (x={sc.x:.2f}, y={sc.y:.2f}, z={sc.z:.2f} × r={r:.2f}).")
         lines.append(f"{indent}  World position: {_format_pos(wp)}.")
+        lines.append(f"{indent}  Felt position: {_felt_position(wp)}.")
         if rot.x or rot.y or rot.z:
             lines.append(f"{indent}  Rotated: x={Transform.display_angle(rot.x):.1f}°, y={Transform.display_angle(rot.y):.1f}°, z={Transform.display_angle(rot.z):.1f}°.")
         opacity_str = f", {int(mat.opacity*100)}% opaque" if mat.opacity < 1.0 else ""
@@ -2865,7 +2906,7 @@ def ansi_render(scene, char_w=72, char_h=32):
         ry2 =  y*math.cos(el_r) - rz*math.sin(el_r)
         rz2 =  y*math.sin(el_r) + rz*math.cos(el_r)
         depth = -rz2 if math.cos(az_r)*math.cos(el_r) > 0 else rz2
-        return -rx*sc, -ry2*sc, depth
+        return rx*sc, -ry2*sc, depth
 
     def _proj_vec(dx, dy, dz):
         """Project a DIRECTION vector (no translation) and return |screen_x|, |screen_y|."""
@@ -3454,13 +3495,14 @@ def export_povray(scene, out_path):
         lz = vp.look_at.z if vp.look_at else 0
         cam_pos = f'<{cx+lx:.2f},{cy+ly:.2f},{cz+lz:.2f}>'
 
+    # QUIRK_CAM_FLIP: disabled for raw baseline
     # cam_flip: when the camera is on the -Z side (cz < 0), POV looks at the back
     # of all geometry. Fix: move camera to the mirror position (+Z side) by negating
     # cx and cz. Text primitives (billboards) also need rotate <0,180,0> to face the
     # camera from this new position -- handled in emit below.
-    cam_flip = (not vp.pos) and (cz < 0)
-    if cam_flip:
-        cam_pos = f'<{-(cx+lx):.2f},{cy+ly:.2f},{-(cz+lz):.2f}>'
+    cam_flip = False  # (not vp.pos) and (cz < 0)
+    # if cam_flip:
+    #     cam_pos = f'<{-(cx+lx):.2f},{cy+ly:.2f},{-(cz+lz):.2f}>'
     look = f'<{vp.look_at.x},{vp.look_at.y},{vp.look_at.z}>' if vp.look_at else '<0,0,0>'
 
     def h2pov(h):
@@ -3580,9 +3622,10 @@ def export_povray(scene, out_path):
             lines_out.append(f'    {tx_block}')
             lines_out.append(f'    scale {size:.4f}')
             lines_out.append(f'    translate <{offset_x:.4f}, 0, 0>')
-            if cam_flip:
-                lines_out.append(f'    translate <0, 0, {-depth_t:.3f}>')
-                lines_out.append(f'    rotate <0,180,0>')
+            # QUIRK_TEXT_MERGE_FLIP: disabled for raw baseline
+            # if cam_flip:
+            #     lines_out.append(f'    translate <0, 0, {-depth_t:.3f}>')
+            #     lines_out.append(f'    rotate <0,180,0>')
             lines_out.append(f'    translate <{wpx:.4f},{wpy:.4f},{wpz:.4f}>')
             lines_out.append('  }')
         else:
@@ -3801,24 +3844,21 @@ def export_povray(scene, out_path):
             depth_t = float(p.get('depth', 0.5))
             font    = str(p.get('font', 'timrom.ttf'))
             offset_x = -len(content) * size * 0.35
-            # World X mirrored in both cases to match geometry convention.
-            # cam_flip: geometry correct as-is, text rotated 180Y to face cam.
-            # not cam_flip: geometry gets scale <-1,1,1>, text needs -wpx and
-            #   scale <-1,1,1> to un-mirror the letterforms.
-            tx_wpx = wpx if cam_flip else -wpx
-            # Text emitted OUTSIDE the union so it's never occluded by geometry
-            text_lines.append('text {')
-            text_lines.append(f'  ttf "{font}" "{content}" {depth_t:.3f}, 0')
-            text_lines.append(f'  {tx_block}')
-            text_lines.append(f'  scale {size:.4f}')
-            text_lines.append(f'  translate <{offset_x:.4f}, 0, 0>')
-            if cam_flip:
-                text_lines.append(f'  translate <0, 0, {-depth_t:.3f}>')
-                text_lines.append(f'  rotate <0,180,0>')
-            else:
-                text_lines.append(f'  scale <-1,1,1>')
-            text_lines.append(f'  translate <{tx_wpx:.4f},{wpy:.4f},{wpz:.4f}>')
-            text_lines.append('}')
+            # QUIRK_TEXT_OUTSIDE_UNION + X_MIRROR: disabled for raw baseline
+            # tx_wpx = wpx if cam_flip else -wpx
+            # Text emitted inside the union (raw baseline)
+            lines.append('text {')
+            lines.append(f'  ttf "{font}" "{content}" {depth_t:.3f}, 0')
+            lines.append(f'  {tx_block}')
+            lines.append(f'  scale {size:.4f}')
+            lines.append(f'  translate <{offset_x:.4f}, 0, 0>')
+            # if cam_flip:
+            #     lines.append(f'  translate <0, 0, {-depth_t:.3f}>')
+            #     lines.append(f'  rotate <0,180,0>')
+            # else:
+            #     lines.append(f'  scale <-1,1,1>')
+            lines.append(f'  translate <{wpx:.4f},{wpy:.4f},{wpz:.4f}>')
+            lines.append('}')
 
         else:
             # Platonic solids - tessellate to mesh2
@@ -3841,23 +3881,20 @@ def export_povray(scene, out_path):
 
     for obj in scene.objects: emit(obj)
 
-    # Close the union.
-    # cam_flip=True  (cz<0): camera moved to +Z side, geometry correct as-is.
-    # cam_flip=False (cz>0): camera on +Z side already, but native uses -rx convention
-    #   so world +X goes screen LEFT. POV default has +X going screen RIGHT -- mirror needed.
-    #   Apply scale <-1,1,1> to DM_scene to mirror X. Winding auto-corrects because
-    #   POV-Ray flips face normals when a negative scale is applied to a union.
+    # Close the union. Raw baseline -- no X mirror, no text_lines flush.
+    # QUIRK_SCENE_XMIRROR: disabled
+    # if cam_flip:
+    #     lines.append('object { DM_scene }')
+    # else:
+    #     lines.append('object { DM_scene scale <-1,1,1> }')
     lines.append('}')
-    if cam_flip:
-        lines.append('object { DM_scene }')
-    else:
-        lines.append('object { DM_scene scale <-1,1,1> }')
+    lines.append('object { DM_scene }')
     lines.append('')
-    # Text objects outside the union -- never occluded by geometry
-    if text_lines:
-        lines.append('// Text labels (outside union for correct visibility)')
-        lines.extend(text_lines)
-        lines.append('')
+    # QUIRK_TEXT_OUTSIDE_UNION flush: disabled
+    # if text_lines:
+    #     lines.append('// Text labels (outside union for correct visibility)')
+    #     lines.extend(text_lines)
+    #     lines.append('')
 
     with open(out_path, 'w') as f: f.write('\n'.join(lines))
     exported = [o for o in scene.all_objects() if not _should_skip(o)]
@@ -4523,7 +4560,7 @@ def export_png_native(scene, out_path, size=512):
         ry2 =  y*_math.cos(el_r) - rz*_math.sin(el_r)
         rz2 =  y*_math.sin(el_r) + rz*_math.cos(el_r)
         depth = -rz2 if _math.cos(az_r)*_math.cos(el_r) > 0 else rz2
-        return -rx*sc, -ry2*sc, depth
+        return rx*sc, -ry2*sc, depth
 
     def _hex_rgb(h):
         h = h.lstrip('#')
