@@ -2812,8 +2812,6 @@ def ansi_render(scene, char_w=72, char_h=32):
         rz  =  x*math.sin(az_r) + z*math.cos(az_r)
         ry2 =  y*math.cos(el_r) - rz*math.sin(el_r)
         rz2 =  y*math.sin(el_r) + rz*math.cos(el_r)
-        # Negate depth when camera is on -Z side (cos(az)*cos(el) > 0)
-        # so that +Z objects (facing camera at az=0) are correctly treated as closer.
         depth = -rz2 if math.cos(az_r)*math.cos(el_r) > 0 else rz2
         return -rx*sc, -ry2*sc, depth
 
@@ -3404,15 +3402,13 @@ def export_povray(scene, out_path):
         lz = vp.look_at.z if vp.look_at else 0
         cam_pos = f'<{cx+lx:.2f},{cy+ly:.2f},{cz+lz:.2f}>'
 
-    # POV-Ray uses a left-handed coordinate system by default (right vector points +X).
-    # DM's native projection uses -rx (right is -X direction in screen space).
-    # To match: mirror camera X position. POV-Ray then computes its own basis
-    # consistently with that mirrored position, giving correct orientation.
-    if vp.pos:
-        pass  # cam_pos already set above
-    else:
-        cam_pos = f'<{cx+lx:.2f},{cy+ly:.2f},{cz+lz:.2f}>'
-
+    # cam_flip: when the camera is on the -Z side (cz < 0), POV looks at the back
+    # of all geometry. Fix: move camera to the mirror position (+Z side) by negating
+    # cx and cz. Text primitives (billboards) also need rotate <0,180,0> to face the
+    # camera from this new position -- handled in emit below.
+    cam_flip = (not vp.pos) and (cz < 0)
+    if cam_flip:
+        cam_pos = f'<{-(cx+lx):.2f},{cy+ly:.2f},{-(cz+lz):.2f}>'
     look = f'<{vp.look_at.x},{vp.look_at.y},{vp.look_at.z}>' if vp.look_at else '<0,0,0>'
 
     def h2pov(h):
@@ -3532,6 +3528,9 @@ def export_povray(scene, out_path):
             lines_out.append(f'    {tx_block}')
             lines_out.append(f'    scale {size:.4f}')
             lines_out.append(f'    translate <{offset_x:.4f}, 0, 0>')
+            if cam_flip:
+                lines_out.append(f'    translate <0, 0, {-depth_t:.3f}>')
+                lines_out.append(f'    rotate <0,180,0>')
             lines_out.append(f'    translate <{wpx:.4f},{wpy:.4f},{wpz:.4f}>')
             lines_out.append('  }')
         else:
@@ -3639,6 +3638,8 @@ def export_povray(scene, out_path):
         lines.append(f'  {tx}')
         lines.append('}')
         lines.append('')
+
+    text_lines = []  # text objects emitted outside the union to avoid occlusion
 
     def emit(obj, parent_M=None):
         local_M = obj.transform.matrix()
@@ -3748,13 +3749,24 @@ def export_povray(scene, out_path):
             depth_t = float(p.get('depth', 0.5))
             font    = str(p.get('font', 'timrom.ttf'))
             offset_x = -len(content) * size * 0.35
-            lines.append('text {')
-            lines.append(f'  ttf "{font}" "{content}" {depth_t:.3f}, 0')
-            lines.append(f'  {tx_block}')
-            lines.append(f'  scale {size:.4f}')
-            lines.append(f'  translate <{offset_x:.4f}, 0, 0>')
-            lines.append(f'  translate <{wpx:.4f},{wpy:.4f},{wpz:.4f}>')
-            lines.append('}')
+            # World X mirrored in both cases to match geometry convention.
+            # cam_flip: geometry correct as-is, text rotated 180Y to face cam.
+            # not cam_flip: geometry gets scale <-1,1,1>, text needs -wpx and
+            #   scale <-1,1,1> to un-mirror the letterforms.
+            tx_wpx = wpx if cam_flip else -wpx
+            # Text emitted OUTSIDE the union so it's never occluded by geometry
+            text_lines.append('text {')
+            text_lines.append(f'  ttf "{font}" "{content}" {depth_t:.3f}, 0')
+            text_lines.append(f'  {tx_block}')
+            text_lines.append(f'  scale {size:.4f}')
+            text_lines.append(f'  translate <{offset_x:.4f}, 0, 0>')
+            if cam_flip:
+                text_lines.append(f'  translate <0, 0, {-depth_t:.3f}>')
+                text_lines.append(f'  rotate <0,180,0>')
+            else:
+                text_lines.append(f'  scale <-1,1,1>')
+            text_lines.append(f'  translate <{tx_wpx:.4f},{wpy:.4f},{wpz:.4f}>')
+            text_lines.append('}')
 
         else:
             # Platonic solids - tessellate to mesh2
@@ -3777,11 +3789,23 @@ def export_povray(scene, out_path):
 
     for obj in scene.objects: emit(obj)
 
-    # Close the union and apply 180° Y rotation to match DM native projection
-    # (AC confirmed: one 180° rotation fixes both the X mirror and Z flip issues)
+    # Close the union.
+    # cam_flip=True  (cz<0): camera moved to +Z side, geometry correct as-is.
+    # cam_flip=False (cz>0): camera on +Z side already, but native uses -rx convention
+    #   so world +X goes screen LEFT. POV default has +X going screen RIGHT -- mirror needed.
+    #   Apply scale <-1,1,1> to DM_scene to mirror X. Winding auto-corrects because
+    #   POV-Ray flips face normals when a negative scale is applied to a union.
     lines.append('}')
-    lines.append('object { DM_scene rotate <0,180,0> }')
+    if cam_flip:
+        lines.append('object { DM_scene }')
+    else:
+        lines.append('object { DM_scene scale <-1,1,1> }')
     lines.append('')
+    # Text objects outside the union -- never occluded by geometry
+    if text_lines:
+        lines.append('// Text labels (outside union for correct visibility)')
+        lines.extend(text_lines)
+        lines.append('')
 
     with open(out_path, 'w') as f: f.write('\n'.join(lines))
     exported = [o for o in scene.all_objects() if not _should_skip(o)]
