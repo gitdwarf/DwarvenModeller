@@ -2,72 +2,72 @@
 <dms version="1.0">
   <metadata created="2026-03-22T09:32:28.466749+00:00" version="1.0"/>
   <viewpoints>
-    <viewpoint name="default" az="12.5" el="24.2" scale="19.8" pos="17.2,42.7,-77.6" look_at="0.0,7.0,0.0"/>
+    <viewpoint name="default" az="12.5" el="32.0" scale="1.5"/>
   </viewpoints>
   <scene>
     <object id="panel_back" type="cube" tags="merge_group=box_panels">
-      <params width="20.0" height="13.0" depth="0.4"/>
-      <transform translate="0.0,0.0,-10.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <params width="30.0" height="19.5" depth="0.6000000000000001"/>
+      <transform translate="0.0,0.0,-15.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
       <material fill="#c8813a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
     </object>
     <object id="panel_front" type="cube" tags="merge_group=box_panels">
-      <params width="20.0" height="13.0" depth="0.4"/>
-      <transform translate="0.0,0.0,10.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <params width="30.0" height="19.5" depth="0.6000000000000001"/>
+      <transform translate="0.0,0.0,15.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
       <material fill="#c8813a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
     </object>
     <object id="panel_left" type="cube" tags="merge_group=box_panels">
-      <params width="0.4" height="13.0" depth="20.0"/>
-      <transform translate="-10.0,0.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <params width="0.6000000000000001" height="19.5" depth="30.0"/>
+      <transform translate="-15.0,0.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
       <material fill="#c8813a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
     </object>
     <object id="panel_right" type="cube" tags="merge_group=box_panels">
-      <params width="0.4" height="13.0" depth="20.0"/>
-      <transform translate="10.0,0.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <params width="0.6000000000000001" height="19.5" depth="30.0"/>
+      <transform translate="15.0,0.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
       <material fill="#c8813a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
     </object>
     <object id="panel_bottom" type="cube" tags="merge_group=box_panels">
-      <params width="20.0" height="0.4" depth="20.0"/>
-      <transform translate="0.0,-6.5,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <params width="30.0" height="0.6000000000000001" depth="30.0"/>
+      <transform translate="0.0,-9.75,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
       <material fill="#b87030" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
     </object>
     <object id="hinge_back" type="null" tags="merge_group=box_panels">
-      <transform translate="0.0,6.5,-10.0" rotate="-110.0,-0.0,0.0" scale="1.0,1.0,1.0"/>
+      <transform translate="0.0,9.75,-15.0" rotate="250.0,0.0,0.0" scale="1.0,1.0,1.0"/>
       <material fill="#cccccc" stroke="#888888" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
       <object id="flap_back" type="cube" tags="merge_group=box_panels">
-        <params width="20.0" height="10.0" depth="0.4"/>
-        <transform translate="0.0,5.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <params width="30.0" height="15.0" depth="0.6000000000000001"/>
+        <transform translate="0.0,7.5,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
         <material fill="#d4924a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
-        <attach point="0.0,5.0,0.0"/>
+        <attach point="0.0,7.5,0.0"/>
       </object>
     </object>
     <object id="hinge_front" type="null" tags="merge_group=box_panels">
-      <transform translate="0.0,6.5,10.0" rotate="70.0,-0.0,0.0" scale="1.0,1.0,1.0"/>
+      <transform translate="0.0,9.75,15.0" rotate="70.0,0.0,0.0" scale="1.0,1.0,1.0"/>
       <material fill="#cccccc" stroke="#888888" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
       <object id="flap_front" type="cube" tags="merge_group=box_panels">
-        <params width="20.0" height="10.0" depth="0.4"/>
-        <transform translate="0.0,5.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <params width="30.0" height="15.0" depth="0.6000000000000001"/>
+        <transform translate="0.0,7.5,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
         <material fill="#d4924a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
-        <attach point="0.0,5.0,0.0"/>
+        <attach point="0.0,7.5,0.0"/>
       </object>
     </object>
     <object id="hinge_flap_left" type="null" tags="merge_group=box_panels">
-      <transform translate="-10.0,6.5,0.0" rotate="0.0,-0.0,110.0" scale="1.0,1.0,1.0"/>
+      <transform translate="-15.0,9.75,0.0" rotate="0.0,0.0,110.0" scale="1.0,1.0,1.0"/>
       <material fill="#cccccc" stroke="#888888" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
       <object id="flap_left" type="cube" tags="merge_group=box_panels">
-        <params width="0.4" height="10.0" depth="20.0"/>
-        <transform translate="0.0,5.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <params width="0.6000000000000001" height="15.0" depth="30.0"/>
+        <transform translate="0.0,7.5,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
         <material fill="#d4924a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
-        <attach point="0.0,5.0,0.0"/>
+        <attach point="0.0,7.5,0.0"/>
       </object>
     </object>
     <object id="hinge_flap_right" type="null" tags="merge_group=box_panels">
-      <transform translate="10.0,6.5,0.0" rotate="0.0,0.0,-110.0" scale="1.0,1.0,1.0"/>
+      <transform translate="15.0,9.75,0.0" rotate="0.0,0.0,250.0" scale="1.0,1.0,1.0"/>
       <material fill="#cccccc" stroke="#888888" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
       <object id="flap_right" type="cube" tags="merge_group=box_panels">
-        <params width="0.4" height="10.0" depth="20.0"/>
-        <transform translate="-0.0,5.0,0.0" rotate="0.0,-0.0,-0.0" scale="1.0,1.0,1.0"/>
+        <params width="0.6000000000000001" height="15.0" depth="30.0"/>
+        <transform translate="-0.0,7.5,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
         <material fill="#d4924a" stroke="#8a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
-        <attach point="-0.0,5.0,0.0"/>
+        <attach point="-0.0,7.5,0.0"/>
       </object>
     </object>
     <object id="doc_yellow" type="cube" tags="merge_group=documents">
@@ -142,7 +142,7 @@
     </object>
     <object id="doc_blue" type="cube" tags="merge_group=documents">
       <params width="12" height="17" depth="0.35"/>
-      <transform translate="14.0,19.0,1.0" rotate="10.0,220.0,-55.0" scale="1.0,1.0,1.0"/>
+      <transform translate="14.0,19.0,1.0" rotate="10.0,220.0,305.0" scale="1.0,1.0,1.0"/>
       <material fill="#f5f5ff" stroke="#c8c0a0" stroke_width="0.5" opacity="1.0" shininess="0.1"/>
       <object id="bhdr" type="cube" tags="merge_group=box_panels">
         <params width="12" height="1.5" depth="0.5"/>
@@ -176,5 +176,9 @@
       </object>
     </object>
   </scene>
-  <history/>
+  <history>
+    <op cmd="viewpoint az=12.5 el=28.0 scale=2.1" timestamp="2026-04-06T04:21:20.329532+00:00"/>
+    <op cmd="viewpoint az=12.5 el=32 scale=1.9" timestamp="2026-04-06T04:21:33.984535+00:00"/>
+    <op cmd="viewpoint az=12.5 el=32 scale=1.5" timestamp="2026-04-06T04:21:54.123315+00:00"/>
+  </history>
 </dms>
