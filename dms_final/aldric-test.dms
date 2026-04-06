@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dms version="1.0">
+  <metadata created="2026-03-21T20:43:25.554926+00:00" version="1.0"/>
+  <viewpoints>
+    <viewpoint name="default" az="330.0" el="15.0" scale="9.0"/>
+  </viewpoints>
+  <scene>
+    <object id="skull" type="icosahedron" tags="deformed_by=socket_right,deformed_by=socket_left,deformed_by=nose_bridge,deformed_by=nose_tip,deformed_by=nostril_right,deformed_by=nostril_left,deformed_by=ear_right,deformed_by=ear_left,deformed_by=cheek_right,deformed_by=cheek_left,deformed_by=jaw,deformed_by=chin,deformed_by=upper_lip,deformed_by=lower_lip,deformed_by=mouth_line,deformed_by=philtrum,deformed_by=brow_right,deformed_by=brow_left,deformed_by=eyebrow_right,deformed_by=eyebrow_left">
+      <params radius="10.0" subdivisions="3.0"/>
+      <transform translate="0.0,0.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.15,0.88"/>
+      <material fill="#e8c49a" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+      <object id="neck" type="cylinder" tags="null">
+        <params radius="4.5" height="8.0" segments="16"/>
+        <transform translate="0.0,-12.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#e0b896" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-12.0,0.0"/>
+      </object>
+      <object id="jaw" type="cube" tags="pressed_into=skull">
+        <params width="14.0" height="5.0" depth="7.0"/>
+        <transform translate="0.0,-7.0,1.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#e4c094" stroke="#c8a070" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-7.0,1.0"/>
+      </object>
+      <object id="brow_right" type="cube" tags="pressed_into=skull">
+        <params width="4.0" height="1.2" depth="1.5"/>
+        <transform translate="-3.2,3.5,9.2" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#4a7a38" stroke="#c8a060" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="-3.2,3.5,9.2"/>
+      </object>
+      <object id="brow_left" type="cube" tags="pressed_into=skull">
+        <params width="4.0" height="1.2" depth="1.5"/>
+        <transform translate="3.2,3.5,9.2" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#ddb07a" stroke="#c8a060" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="3.2,3.5,9.2"/>
+      </object>
+      <object id="socket_right" type="sphere" tags="deformed_by=white_right,pressed_into=skull">
+        <params radius="2.2" subdivisions="3"/>
+        <transform translate="-3.2,2.8,9.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#c8a07a" stroke="#a07040" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="-3.2,2.8,9.0"/>
+      </object>
+      <object id="socket_left" type="sphere" tags="deformed_by=white_left,pressed_into=skull">
+        <params radius="2.2" subdivisions="3"/>
+        <transform translate="3.2,2.8,9.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#c8a07a" stroke="#a07040" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="3.2,2.8,9.0"/>
+      </object>
+      <object id="white_right" type="sphere" tags="pressed_into=socket_right,deformed_by=iris_right,carve=true">
+        <params radius="1.8" subdivisions="3"/>
+        <transform translate="-3.2,2.8,9.6" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#f4f0e8" stroke="#ccccbb" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="-3.2,2.8,9.6"/>
+      </object>
+      <object id="white_left" type="sphere" tags="pressed_into=socket_left,deformed_by=iris_left,carve=true">
+        <params radius="1.8" subdivisions="3"/>
+        <transform translate="3.2,2.8,9.6" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#f4f0e8" stroke="#ccccbb" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="3.2,2.8,9.6"/>
+      </object>
+      <object id="iris_right" type="sphere" tags="pressed_into=white_right,carve=true,deformed_by=pupil_right">
+        <params radius="1.1" subdivisions="3"/>
+        <transform translate="-3.2,2.8000000000000003,12.48068181818182" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#4a7a38" stroke="#2a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="-3.2,2.8,10.3"/>
+      </object>
+      <object id="iris_left" type="sphere" tags="pressed_into=white_left,carve=true,deformed_by=pupil_left">
+        <params radius="1.1" subdivisions="3"/>
+        <transform translate="3.2,2.8000000000000003,12.48068181818182" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#4a7a38" stroke="#2a4a18" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="3.2,2.8,10.3"/>
+      </object>
+      <object id="pupil_right" type="sphere" tags="pressed_into=iris_right">
+        <params radius="0.6" subdivisions="3"/>
+        <transform translate="-3.2,2.8000000000000003,11.281818181818187" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#0a0808" stroke="#050404" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="-3.2,2.8,10.9"/>
+      </object>
+      <object id="pupil_left" type="sphere" tags="pressed_into=iris_left">
+        <params radius="0.6" subdivisions="3"/>
+        <transform translate="3.2,2.8000000000000003,11.281818181818187" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#0a0808" stroke="#050404" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="3.2,2.8,10.9"/>
+      </object>
+      <object id="nose_bridge" type="octahedron" tags="pressed_into=skull">
+        <params radius="2.0"/>
+        <transform translate="0.0,0.5,9.8" rotate="0.0,0.0,0.0" scale="0.45,1.4,0.7"/>
+        <material fill="#dba878" stroke="#c8906a" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,0.5,9.8"/>
+      </object>
+      <object id="nose_tip" type="sphere" tags="pressed_into=skull">
+        <params radius="1.3" subdivisions="3"/>
+        <transform translate="0.0,-1.8,10.4" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#d4956a" stroke="#b87848" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-1.8,10.4"/>
+      </object>
+      <object id="nostril_right" type="sphere" tags="pressed_into=skull">
+        <params radius="0.7" subdivisions="3"/>
+        <transform translate="-1.4,-2.4,9.9" rotate="0.0,0.0,0.0" scale="1.2,0.7,0.8"/>
+        <material fill="#c07848" stroke="#904820" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="-1.4,-2.4,9.9"/>
+      </object>
+      <object id="nostril_left" type="sphere" tags="pressed_into=skull">
+        <params radius="0.7" subdivisions="3"/>
+        <transform translate="1.4,-2.4,9.9" rotate="0.0,0.0,0.0" scale="1.2,0.7,0.8"/>
+        <material fill="#c07848" stroke="#904820" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="1.4,-2.4,9.9"/>
+      </object>
+      <object id="upper_lip" type="cube" tags="pressed_into=skull">
+        <params width="5.5" height="1.4" depth="1.2"/>
+        <transform translate="0.0,-4.8,9.5" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#c06868" stroke="#904848" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-4.8,9.5"/>
+      </object>
+      <object id="lower_lip" type="cube" tags="pressed_into=skull">
+        <params width="5.0" height="1.6" depth="1.4"/>
+        <transform translate="0.0,-6.4,9.3" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#b85858" stroke="#883838" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-6.4,9.3"/>
+      </object>
+      <object id="mouth_line" type="cube" tags="pressed_into=skull">
+        <params width="5.2" height="0.35" depth="0.5"/>
+        <transform translate="0.0,-5.65,9.7" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#6a2828" stroke="#4a1818" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-5.65,9.7"/>
+      </object>
+      <object id="ear_right" type="sphere" tags="deformed_by=lobe_right,pressed_into=skull">
+        <params radius="2.8" subdivisions="3"/>
+        <transform translate="-10.2,0.5,1.5" rotate="0.0,0.0,0.0" scale="0.5,1.4,0.4"/>
+        <material fill="#4a7a38" stroke="#b88858" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="-10.2,0.5,1.5"/>
+      </object>
+      <object id="ear_left" type="sphere" tags="deformed_by=lobe_left,pressed_into=skull">
+        <params radius="2.8" subdivisions="3"/>
+        <transform translate="10.2,0.5,1.5" rotate="0.0,0.0,0.0" scale="0.5,1.4,0.4"/>
+        <material fill="#daa878" stroke="#b88858" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="10.2,0.5,1.5"/>
+      </object>
+      <object id="lobe_right" type="sphere" tags="pressed_into=ear_right">
+        <params radius="1.0" subdivisions="3"/>
+        <transform translate="-10.4,-3.2,1.2" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#4a7a38" stroke="#b08050" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="-10.4,-3.2,1.2"/>
+      </object>
+      <object id="lobe_left" type="sphere" tags="pressed_into=ear_left">
+        <params radius="1.0" subdivisions="3"/>
+        <transform translate="10.4,-3.2,1.2" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#d4a070" stroke="#b08050" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="10.4,-3.2,1.2"/>
+      </object>
+      <object id="eyebrow_right" type="cube" tags="pressed_into=skull">
+        <params width="4.2" height="0.8" depth="0.9"/>
+        <transform translate="-3.2,5.1,9.5" rotate="0.0,0.0,8.0" scale="1.0,1.0,1.0"/>
+        <material fill="#4a7a38" stroke="#1a0a00" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="-3.2,5.1,9.5"/>
+      </object>
+      <object id="eyebrow_left" type="cube" tags="pressed_into=skull">
+        <params width="4.2" height="0.8" depth="0.9"/>
+        <transform translate="3.2,5.1,9.5" rotate="0.0,0.0,352.0" scale="1.0,1.0,1.0"/>
+        <material fill="#3d2010" stroke="#1a0a00" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="3.2,5.1,9.5"/>
+      </object>
+      <object id="cheek_right" type="sphere" tags="pressed_into=skull">
+        <params radius="2.5" subdivisions="3"/>
+        <transform translate="-6.0,-0.5,8.2" rotate="0.0,0.0,0.0" scale="1.3,0.7,0.6"/>
+        <material fill="#4a7a38" stroke="#c89060" stroke_width="0.5" opacity="0.7" shininess="0.0"/>
+        <attach point="-6.0,-0.5,8.2"/>
+      </object>
+      <object id="cheek_left" type="sphere" tags="pressed_into=skull">
+        <params radius="2.5" subdivisions="3"/>
+        <transform translate="6.0,-0.5,8.2" rotate="0.0,0.0,0.0" scale="1.3,0.7,0.6"/>
+        <material fill="#e8b888" stroke="#c89060" stroke_width="0.5" opacity="0.7" shininess="0.0"/>
+        <attach point="6.0,-0.5,8.2"/>
+      </object>
+      <object id="philtrum" type="cube" tags="pressed_into=skull">
+        <params width="1.8" height="2.2" depth="0.4"/>
+        <transform translate="0.0,-3.4,10.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+        <material fill="#d8a878" stroke="#b88858" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-3.4,10.0"/>
+      </object>
+      <object id="chin" type="sphere" tags="pressed_into=skull">
+        <params radius="2.2" subdivisions="3"/>
+        <transform translate="0.0,-9.5,7.5" rotate="0.0,0.0,0.0" scale="1.1,0.6,0.7"/>
+        <material fill="#e0b890" stroke="#c09060" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
+        <attach point="0.0,-9.5,7.5"/>
+      </object>
+    </object>
+  </scene>
+  <history>
+    <op cmd="add type=cylinder id=neck radius=4.5 height=8 fill=#e0b896 stroke=#c8a070 at=0,-14,0" timestamp="2026-03-21T20:43:25.729201+00:00"/>
+    <op cmd="add type=icosahedron id=skull radius=10 subdivisions=3 fill=#e8c49a stroke=#c8a070" timestamp="2026-03-21T20:43:25.868099+00:00"/>
+    <op cmd="scale target=skull x=1.0 y=1.15 z=0.88" timestamp="2026-03-21T20:43:26.032872+00:00"/>
+    <op cmd="attach child=neck to=skull at=0,-12,0" timestamp="2026-03-21T20:43:26.171717+00:00"/>
+    <op cmd="add type=cube id=jaw width=14 height=5 depth=7 fill=#e4c094 stroke=#c8a070" timestamp="2026-03-21T20:43:26.327027+00:00"/>
+    <op cmd="attach child=jaw to=skull at=0,-7,1" timestamp="2026-03-21T20:43:26.458926+00:00"/>
+    <op cmd="add type=cube id=brow_right width=4 height=1.2 depth=1.5 fill=#ddb07a stroke=#c8a060" timestamp="2026-03-21T20:43:26.617891+00:00"/>
+    <op cmd="attach child=brow_right to=skull at=-3.2,3.5,9.2" timestamp="2026-03-21T20:43:26.749270+00:00"/>
+    <op cmd="add type=cube id=brow_left width=4 height=1.2 depth=1.5 fill=#ddb07a stroke=#c8a060" timestamp="2026-03-21T20:43:26.907865+00:00"/>
+    <op cmd="attach child=brow_left to=skull at=3.2,3.5,9.2" timestamp="2026-03-21T20:43:27.037530+00:00"/>
+    <op cmd="add type=sphere id=socket_right radius=2.2 fill=#c8a07a stroke=#a07040" timestamp="2026-03-21T20:43:27.173839+00:00"/>
+    <op cmd="attach child=socket_right to=skull at=-3.2,2.8,9.0" timestamp="2026-03-21T20:43:27.327877+00:00"/>
+    <op cmd="add type=sphere id=socket_left radius=2.2 fill=#c8a07a stroke=#a07040" timestamp="2026-03-21T20:43:27.460230+00:00"/>
+    <op cmd="attach child=socket_left to=skull at=3.2,2.8,9.0" timestamp="2026-03-21T20:43:27.613216+00:00"/>
+    <op cmd="add type=sphere id=white_right radius=1.8 fill=#f4f0e8 stroke=#ccccbb" timestamp="2026-03-21T20:43:27.745112+00:00"/>
+    <op cmd="attach child=white_right to=skull at=-3.2,2.8,9.6" timestamp="2026-03-21T20:43:27.878115+00:00"/>
+    <op cmd="add type=sphere id=white_left radius=1.8 fill=#f4f0e8 stroke=#ccccbb" timestamp="2026-03-21T20:43:28.033047+00:00"/>
+    <op cmd="attach child=white_left to=skull at=3.2,2.8,9.6" timestamp="2026-03-21T20:43:28.167388+00:00"/>
+    <op cmd="add type=sphere id=iris_right radius=1.1 fill=#4a7a38 stroke=#2a4a18" timestamp="2026-03-21T20:43:28.321539+00:00"/>
+    <op cmd="attach child=iris_right to=skull at=-3.2,2.8,10.3" timestamp="2026-03-21T20:43:28.442944+00:00"/>
+    <op cmd="add type=sphere id=iris_left radius=1.1 fill=#4a7a38 stroke=#2a4a18" timestamp="2026-03-21T20:43:28.578397+00:00"/>
+    <op cmd="attach child=iris_left to=skull at=3.2,2.8,10.3" timestamp="2026-03-21T20:43:28.725483+00:00"/>
+    <op cmd="add type=sphere id=pupil_right radius=0.6 fill=#0a0808 stroke=#050404" timestamp="2026-03-21T20:43:28.851323+00:00"/>
+    <op cmd="attach child=pupil_right to=skull at=-3.2,2.8,10.9" timestamp="2026-03-21T20:43:29.006459+00:00"/>
+    <op cmd="add type=sphere id=pupil_left radius=0.6 fill=#0a0808 stroke=#050404" timestamp="2026-03-21T20:43:29.140641+00:00"/>
+    <op cmd="attach child=pupil_left to=skull at=3.2,2.8,10.9" timestamp="2026-03-21T20:43:29.273131+00:00"/>
+    <op cmd="add type=octahedron id=nose_bridge radius=2.0 fill=#dba878 stroke=#c8906a" timestamp="2026-03-21T20:43:29.424103+00:00"/>
+    <op cmd="scale target=nose_bridge x=0.45 y=1.4 z=0.7" timestamp="2026-03-21T20:43:29.549372+00:00"/>
+    <op cmd="attach child=nose_bridge to=skull at=0,0.5,9.8" timestamp="2026-03-21T20:43:29.706755+00:00"/>
+    <op cmd="add type=sphere id=nose_tip radius=1.3 fill=#d4956a stroke=#b87848" timestamp="2026-03-21T20:43:29.829378+00:00"/>
+    <op cmd="attach child=nose_tip to=skull at=0,-1.8,10.4" timestamp="2026-03-21T20:43:29.954270+00:00"/>
+    <op cmd="add type=sphere id=nostril_right radius=0.7 fill=#c07848 stroke=#904820" timestamp="2026-03-21T20:43:30.107003+00:00"/>
+    <op cmd="scale target=nostril_right x=1.2 y=0.7 z=0.8" timestamp="2026-03-21T20:43:30.231819+00:00"/>
+    <op cmd="attach child=nostril_right to=skull at=-1.4,-2.4,9.9" timestamp="2026-03-21T20:43:30.362245+00:00"/>
+    <op cmd="add type=sphere id=nostril_left radius=0.7 fill=#c07848 stroke=#904820" timestamp="2026-03-21T20:43:30.512969+00:00"/>
+    <op cmd="scale target=nostril_left x=1.2 y=0.7 z=0.8" timestamp="2026-03-21T20:43:30.641185+00:00"/>
+    <op cmd="attach child=nostril_left to=skull at=1.4,-2.4,9.9" timestamp="2026-03-21T20:43:30.770367+00:00"/>
+    <op cmd="add type=cube id=upper_lip width=5.5 height=1.4 depth=1.2 fill=#c06868 stroke=#904848" timestamp="2026-03-21T20:43:30.921910+00:00"/>
+    <op cmd="attach child=upper_lip to=skull at=0,-4.8,9.5" timestamp="2026-03-21T20:43:31.053018+00:00"/>
+    <op cmd="add type=cube id=lower_lip width=5.0 height=1.6 depth=1.4 fill=#b85858 stroke=#883838" timestamp="2026-03-21T20:43:31.212441+00:00"/>
+    <op cmd="attach child=lower_lip to=skull at=0,-6.4,9.3" timestamp="2026-03-21T20:43:31.344756+00:00"/>
+    <op cmd="add type=cube id=mouth_line width=5.2 height=0.35 depth=0.5 fill=#6a2828 stroke=#4a1818" timestamp="2026-03-21T20:43:31.477269+00:00"/>
+    <op cmd="attach child=mouth_line to=skull at=0,-5.65,9.7" timestamp="2026-03-21T20:43:31.633561+00:00"/>
+    <op cmd="add type=sphere id=ear_right radius=2.8 fill=#daa878 stroke=#b88858" timestamp="2026-03-21T20:43:31.766415+00:00"/>
+    <op cmd="scale target=ear_right x=0.5 y=1.4 z=0.4" timestamp="2026-03-21T20:43:31.926055+00:00"/>
+    <op cmd="attach child=ear_right to=skull at=-10.2,0.5,1.5" timestamp="2026-03-21T20:43:32.058180+00:00"/>
+    <op cmd="add type=sphere id=ear_left radius=2.8 fill=#daa878 stroke=#b88858" timestamp="2026-03-21T20:43:32.216553+00:00"/>
+    <op cmd="scale target=ear_left x=0.5 y=1.4 z=0.4" timestamp="2026-03-21T20:43:32.354671+00:00"/>
+    <op cmd="attach child=ear_left to=skull at=10.2,0.5,1.5" timestamp="2026-03-21T20:43:32.511607+00:00"/>
+    <op cmd="add type=sphere id=lobe_right radius=1.0 fill=#d4a070 stroke=#b08050" timestamp="2026-03-21T20:43:32.639167+00:00"/>
+    <op cmd="attach child=lobe_right to=skull at=-10.4,-3.2,1.2" timestamp="2026-03-21T20:43:32.776468+00:00"/>
+    <op cmd="add type=sphere id=lobe_left radius=1.0 fill=#d4a070 stroke=#b08050" timestamp="2026-03-21T20:43:32.929112+00:00"/>
+    <op cmd="attach child=lobe_left to=skull at=10.4,-3.2,1.2" timestamp="2026-03-21T20:43:33.064354+00:00"/>
+    <op cmd="add type=cube id=eyebrow_right width=4.2 height=0.8 depth=0.9 fill=#3d2010 stroke=#1a0a00" timestamp="2026-03-21T20:43:33.221735+00:00"/>
+    <op cmd="rotate target=eyebrow_right z=8" timestamp="2026-03-21T20:43:33.353855+00:00"/>
+    <op cmd="attach child=eyebrow_right to=skull at=-3.2,5.1,9.5" timestamp="2026-03-21T20:43:33.509323+00:00"/>
+    <op cmd="add type=cube id=eyebrow_left width=4.2 height=0.8 depth=0.9 fill=#3d2010 stroke=#1a0a00" timestamp="2026-03-21T20:43:33.638035+00:00"/>
+    <op cmd="rotate target=eyebrow_left z=-8" timestamp="2026-03-21T20:43:33.769183+00:00"/>
+    <op cmd="attach child=eyebrow_left to=skull at=3.2,5.1,9.5" timestamp="2026-03-21T20:43:33.920196+00:00"/>
+    <op cmd="add type=sphere id=cheek_right radius=2.5 fill=#e8b888 stroke=#c89060 opacity=0.7" timestamp="2026-03-21T20:43:34.048229+00:00"/>
+    <op cmd="scale target=cheek_right x=1.3 y=0.7 z=0.6" timestamp="2026-03-21T20:43:34.208976+00:00"/>
+    <op cmd="attach child=cheek_right to=skull at=-6.0,-0.5,8.2" timestamp="2026-03-21T20:43:34.338215+00:00"/>
+    <op cmd="add type=sphere id=cheek_left radius=2.5 fill=#e8b888 stroke=#c89060 opacity=0.7" timestamp="2026-03-21T20:43:34.474171+00:00"/>
+    <op cmd="scale target=cheek_left x=1.3 y=0.7 z=0.6" timestamp="2026-03-21T20:43:34.628398+00:00"/>
+    <op cmd="attach child=cheek_left to=skull at=6.0,-0.5,8.2" timestamp="2026-03-21T20:43:34.766552+00:00"/>
+    <op cmd="add type=cube id=philtrum width=1.8 height=2.2 depth=0.4 fill=#d8a878 stroke=#b88858" timestamp="2026-03-21T20:43:34.924386+00:00"/>
+    <op cmd="attach child=philtrum to=skull at=0,-3.4,10.0" timestamp="2026-03-21T20:43:35.054281+00:00"/>
+    <op cmd="add type=sphere id=chin radius=2.2 fill=#e0b890 stroke=#c09060" timestamp="2026-03-21T20:43:35.211062+00:00"/>
+    <op cmd="scale target=chin x=1.1 y=0.6 z=0.7" timestamp="2026-03-21T20:43:35.345332+00:00"/>
+    <op cmd="attach child=chin to=skull at=0,-9.5,7.5" timestamp="2026-03-21T20:43:35.482052+00:00"/>
+    <op cmd="viewpoint az=150 el=15 scale=9" timestamp="2026-03-21T20:43:35.634446+00:00"/>
+    <op cmd="unpress target=iris_left" timestamp="2026-04-06T06:12:46.746357+00:00"/>
+    <op cmd="unpress target=iris_right" timestamp="2026-04-06T06:12:46.976776+00:00"/>
+    <op cmd="unpress target=pupil_left" timestamp="2026-04-06T06:12:47.230874+00:00"/>
+    <op cmd="unpress target=pupil_right" timestamp="2026-04-06T06:12:47.439241+00:00"/>
+    <op cmd="press target=iris_left  into=white_left  depth=0.8" timestamp="2026-04-06T06:12:47.644709+00:00"/>
+    <op cmd="press target=iris_right into=white_right depth=0.8" timestamp="2026-04-06T06:12:47.859449+00:00"/>
+    <op cmd="press target=pupil_left  into=iris_left  depth=0.5" timestamp="2026-04-06T06:12:48.068109+00:00"/>
+    <op cmd="press target=pupil_right into=iris_right depth=0.5" timestamp="2026-04-06T06:12:48.276147+00:00"/>
+    <op cmd="tag target=white_left  add=carve=true" timestamp="2026-04-06T06:12:48.514678+00:00"/>
+    <op cmd="tag target=white_right add=carve=true" timestamp="2026-04-06T06:12:48.727357+00:00"/>
+    <op cmd="tag target=iris_left   add=carve=true" timestamp="2026-04-06T06:12:48.929695+00:00"/>
+    <op cmd="tag target=iris_right  add=carve=true" timestamp="2026-04-06T06:12:49.143354+00:00"/>
+    <op cmd="viewpoint az=330 el=15 scale=9" timestamp="2026-04-06T06:12:54.470668+00:00"/>
+    <op cmd="unpress target=pupil_left" timestamp="2026-04-06T06:13:12.643808+00:00"/>
+    <op cmd="unpress target=pupil_right" timestamp="2026-04-06T06:13:12.852406+00:00"/>
+    <op cmd="press target=pupil_left  into=iris_left  depth=0.9" timestamp="2026-04-06T06:13:13.069851+00:00"/>
+    <op cmd="press target=pupil_right into=iris_right depth=0.9" timestamp="2026-04-06T06:13:13.321035+00:00"/>
+  </history>
+</dms>
