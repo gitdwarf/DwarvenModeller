@@ -2578,10 +2578,33 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
         _lr = 'Scene left tilts toward you.' if _lateral > 0 else 'Scene right tilts toward you.'
         _orient = f'Scene rotated {_side}, facing {_fd}. {_lr}'
 
+    # Elevation description -- what the tilt means for the user
+    _el = vp.el
+    if abs(_el) < 5:
+        _elev = 'Viewing straight on (no vertical tilt). Top of scene is up, bottom is down.'
+    elif _el > 0:
+        if _el < 20:
+            _elev = f'Looking slightly down ({_el}°). Scene top tilts away, scene bottom tilts toward you.'
+        elif _el < 50:
+            _elev = f'Looking down from above ({_el}°). You see more of the scene top than bottom.'
+        elif _el < 80:
+            _elev = f'Steep top-down view ({_el}°). Scene top faces you directly, sides visible.'
+        else:
+            _elev = f'Nearly straight down ({_el}°). Top of scene faces you, left/right still apply.'
+    else:
+        _el_abs = abs(_el)
+        if _el_abs < 20:
+            _elev = f'Looking slightly up ({_el_abs}°). Scene bottom tilts away, scene top tilts toward you.'
+        elif _el_abs < 50:
+            _elev = f'Looking up from below ({_el_abs}°). You see more of the scene bottom than top.'
+        else:
+            _elev = f'Steep bottom-up view ({_el_abs}°). Scene bottom faces you directly.'
+
     lines += ['',
               f'Scene contains {len(all_objs)} object{"s" if len(all_objs)!=1 else ""}.',
               f'Viewpoint: azimuth {vp.az}°, elevation {vp.el}°, scale {vp.scale}.',
               f'  {_orient}',
+              f'  {_elev}',
               '']
 
     # -- Object tree ----------------------------------------------------------─
