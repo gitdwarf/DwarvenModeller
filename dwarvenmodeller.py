@@ -1914,6 +1914,12 @@ def op_viewpoint(scene, kwargs):
     Sets the active viewpoint for feedback and SVG/POV-Ray export.
     az/el compute camera position. pos= overrides az/el in POV-Ray export.
 
+    For sculptor-friendly relative controls, use the turntable ops instead:
+      turn left=N / right=N  -- spin the sphere
+      tilt toward=N / away=N -- tip the sphere
+      zoom in=N / out=N      -- bring closer or push further
+      nudge left/right/up/down/toward/away=N -- shift the centre
+
     Common presets:
       Front:  az=150 el=0     Side: az=60 el=0
       Top:    az=0   el=89    3/4:  az=330 el=25 (default)
@@ -1930,6 +1936,140 @@ def op_viewpoint(scene, kwargs):
     if 'pos'    in kwargs: vp.pos   = Vec3.parse(kwargs['pos']);     changes.append(f"camera at {vp.pos}")
     if 'look_at'in kwargs: vp.look_at=Vec3.parse(kwargs['look_at']); changes.append(f"look_at {vp.look_at}")
     return f"Viewpoint '{name}' active. {', '.join(changes) if changes else 'No changes.'}"
+
+def op_turn(scene, kwargs):
+    """
+    turn left=N              -- spin the scene-sphere left by N degrees
+    turn right=N             -- spin the scene-sphere right by N degrees
+    turn target=<id> left=N  -- spin an object's local sphere left (rotate around its Y axis)
+    turn target=<id> right=N -- spin an object's local sphere right
+
+    Without target: rotates the whole scene in your hands (viewpoint az).
+    With target: spins that object on its own vertical axis.
+    Relative -- always a delta. Like turning a turntable left or right.
+    """
+    if 'target' in kwargs:
+        obj = resolve_target(scene, kwargs['target'])
+        delta = float(kwargs.get('left', 0)) - float(kwargs.get('right', 0))
+        obj.transform.rotate.y = (obj.transform.rotate.y + delta) % 360
+        return f"Turned '{kwargs['target']}' {'left' if delta>0 else 'right'} {abs(delta):.1f}°. Local Y now {obj.transform.rotate.y:.1f}°."
+    vp = scene.active_viewpoint()
+    if 'left'  in kwargs: vp.az = (vp.az + float(kwargs['left']))  % 360
+    if 'right' in kwargs: vp.az = (vp.az - float(kwargs['right'])) % 360
+    return f"Turned sphere. az now {vp.az:.1f}°."
+
+
+def op_tilt(scene, kwargs):
+    """
+    tilt toward=N              -- tip the scene-sphere top toward you
+    tilt away=N                -- tip the scene-sphere top away from you
+    tilt target=<id> toward=N  -- tip an object's local sphere toward you (rotate around its X axis)
+    tilt target=<id> away=N    -- tip an object's local sphere away
+
+    Without target: tilts the whole scene in your hands (viewpoint el).
+    With target: tips that object on its own left-right axis.
+    Relative -- always a delta. Clamped to -89..89 for scene sphere.
+    """
+    if 'target' in kwargs:
+        obj = resolve_target(scene, kwargs['target'])
+        delta = float(kwargs.get('toward', 0)) - float(kwargs.get('away', 0))
+        obj.transform.rotate.x = (obj.transform.rotate.x + delta) % 360
+        return f"Tilted '{kwargs['target']}' {'toward' if delta>0 else 'away'} {abs(delta):.1f}°. Local X now {obj.transform.rotate.x:.1f}°."
+    vp = scene.active_viewpoint()
+    if 'toward' in kwargs: vp.el = max(-89, min(89, vp.el + float(kwargs['toward'])))
+    if 'away'   in kwargs: vp.el = max(-89, min(89, vp.el - float(kwargs['away'])))
+    return f"Tilted sphere. el now {vp.el:.1f}°."
+
+
+def op_zoom(scene, kwargs):
+    """
+    zoom in=N   -- bring the scene closer (scale multiplied by N, or +N if small)
+    zoom out=N  -- push the scene further away (scale divided by N, or -N if small)
+
+    Changes how much of the scene fills your felt space.
+    Like pulling clay closer to your hands or pushing it further away.
+    Relative -- multiplicative delta. zoom in=2 doubles the apparent size.
+    """
+    vp = scene.active_viewpoint()
+    n = float(kwargs.get('in', kwargs.get('out', 1.0)))
+    if n <= 0: return "zoom: N must be positive."
+    if 'in'  in kwargs: vp.scale = vp.scale * n
+    if 'out' in kwargs: vp.scale = vp.scale / n
+    return f"Zoomed sphere. scale now {round(vp.scale, 4)}."
+
+
+def op_nudge(scene, kwargs):
+    """
+    nudge left/right/up/down/toward/away=N
+        -- shift which part of the scene is centred under your hands (look_at delta)
+
+    nudge target=<id> left/right/up/down/toward/away=N
+        -- move an object in your felt space
+           directions are relative to current scene-sphere orientation (viewpoint az/el)
+           so 'nudge left' always moves left in YOUR space regardless of how the scene is rotated
+
+    Relative -- always a delta. Units match scene units.
+    """
+    import math as _m
+    vp = scene.active_viewpoint()
+    az_r = _m.radians(vp.az)
+    # Right vector in world space (perpendicular to az, horizontal)
+    r_x = _m.cos(az_r); r_z = _m.sin(az_r)
+    # Forward vector (into the scene from you)
+    f_x = -r_z; f_z = r_x
+    dx = dy = dz = 0.0
+    if 'right'  in kwargs: n=float(kwargs['right']);  dx += r_x*n; dz += r_z*n
+    if 'left'   in kwargs: n=float(kwargs['left']);   dx -= r_x*n; dz -= r_z*n
+    if 'up'     in kwargs: dy += float(kwargs['up'])
+    if 'down'   in kwargs: dy -= float(kwargs['down'])
+    if 'toward' in kwargs: n=float(kwargs['toward']); dx += f_x*n; dz += f_z*n
+    if 'away'   in kwargs: n=float(kwargs['away']);   dx -= f_x*n; dz -= f_z*n
+
+    if 'target' in kwargs:
+        # Move object in felt space
+        obj = resolve_target(scene, kwargs['target'])
+        # Convert world-space delta to object's local space
+        parent = scene.find_parent(kwargs['target'])
+        if parent:
+            try:
+                parent_M = scene._world_matrix(parent)
+                # Apply delta in world space then convert to local
+                wp = scene.world_pos(obj)
+                new_wp = Vec3(wp.x+dx, wp.y+dy, wp.z+dz)
+                local_pos = parent_M.inverse() * new_wp
+                obj.transform.translate = local_pos
+                return f"Nudged '{kwargs['target']}'. Felt: {scene._felt_desc(obj, vp)}."
+            except Exception:
+                pass
+        # Top-level object -- world = local
+        t = obj.transform.translate
+        obj.transform.translate = Vec3(t.x+dx, t.y+dy, t.z+dz)
+        return f"Nudged '{kwargs['target']}'. New position: ({obj.transform.translate.x:.2f}, {obj.transform.translate.y:.2f}, {obj.transform.translate.z:.2f})."
+    else:
+        la = vp.look_at if vp.look_at else Vec3(0, 0, 0)
+        vp.look_at = Vec3(la.x+dx, la.y+dy, la.z+dz)
+        return f"Nudged centre to ({vp.look_at.x:.2f}, {vp.look_at.y:.2f}, {vp.look_at.z:.2f})."
+
+def op_roll(scene, kwargs):
+    """
+    roll left=N              -- lean the scene-sphere left (roll the whole scene)
+    roll right=N             -- lean the scene-sphere right
+    roll target=<id> left=N  -- lean an object left on its own front-back axis (local Z)
+    roll target=<id> right=N -- lean an object right
+
+    Without target: rolls the whole scene (currently not stored in viewpoint -- future feature).
+    With target: rotates the object around its local Z axis (lean left/right).
+    Relative -- always a delta.
+    """
+    if 'target' in kwargs:
+        obj = resolve_target(scene, kwargs['target'])
+        delta = float(kwargs.get('right', 0)) - float(kwargs.get('left', 0))
+        obj.transform.rotate.z = (obj.transform.rotate.z + delta) % 360
+        return f"Rolled '{kwargs['target']}' {'right' if delta>0 else 'left'} {abs(delta):.1f}°. Local Z now {obj.transform.rotate.z:.1f}°."
+    # Scene-sphere roll not yet stored in viewpoint -- acknowledged, planned
+    return "Scene roll noted. (Scene-sphere roll axis not yet stored in viewpoint -- use 'turn' and 'tilt' for now.)"
+
+
 
 
 def op_group(scene, kwargs):
@@ -2476,6 +2616,11 @@ OPERATIONS = {
     'rename':    op_rename,
     'tag':       op_tag,
     'param':     op_param,
+    'turn':      op_turn,       # spin sphere left/right (az delta)
+    'tilt':      op_tilt,       # tip sphere toward/away (el delta)
+    'zoom':      op_zoom,       # bring scene closer/further (scale delta)
+    'nudge':     op_nudge,      # shift scene centre or object in felt space
+    'roll':      op_roll,       # lean sphere or object left/right (local Z)
     'viewpoint': op_viewpoint,
     'group':     op_group,
     'mirror':    op_mirror,
@@ -2529,7 +2674,7 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
     if mode == 'skeleton':
         import math as _math
         lines += ['',
-                  f'Scene: {len(all_objs)} objects. Viewpoint: az={vp.az} el={vp.el}',
+                  f'Scene: {len(all_objs)} objects. Sphere: turn={vp.az} tilt={vp.el}',
                   '']
         col_w = [24, 16, 28, 8, 16]
         header = (f"{'id':<{col_w[0]}} {'parent':<{col_w[1]}} "
@@ -2603,9 +2748,15 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
         else:
             _elev = 'Looking almost straight up. Scene bottom faces you. Left/right still apply horizontally.'
 
+    # Express viewpoint in sculptor/turntable vocabulary, not CAD camera terms.
+    # turn = az (spin the sphere), tilt = el (tip the sphere), zoom = scale
+    _zoom_str = f'{round(vp.scale, 4)}'
+    _centre_str = (f', centred on ({vp.look_at.x:.1f}, {vp.look_at.y:.1f}, {vp.look_at.z:.1f})'
+                   if vp.look_at else '')
+
     lines += ['',
               f'Scene contains {len(all_objs)} object{"s" if len(all_objs)!=1 else ""}.',
-              f'Viewpoint: azimuth {vp.az}°, elevation {vp.el}°, scale {vp.scale}.',
+              f'Sphere: turn={vp.az}°  tilt={vp.el}°  zoom={_zoom_str}{_centre_str}.',
               f'  {_orient}',
               f'  {_elev}',
               '']
