@@ -51,8 +51,34 @@ PRIMITIVES (Platonic solids + conveniences):
 
 COORDINATE SYSTEM: right-handed, Y-up, Z-toward-viewer-at-az=0. Units arbitrary.
   +Y = up (height/spine direction)
-  +X = right
+  +X = right (world right -- see LEFT/RIGHT below)
   +Z = toward viewer (az=0)
+
+  LEFT/RIGHT -- THE COMPASS RULE (critical for AI instances):
+  Think of the scene as a compass. +Z is North. The sphere rotates in your hands.
+
+  When North (+Z) faces AWAY from you (az=180, scene faces away):
+    West (-X) is on YOUR LEFT.  East (+X) is on YOUR RIGHT.
+    Left is left, right is right. Direct mapping.
+
+  When North (+Z) faces TOWARD you (az=0, scene faces you):
+    West (-X) is on YOUR RIGHT. East (+X) is on YOUR LEFT.
+    Left/right are MIRRORED -- like looking at someone facing you.
+
+  For any other azimuth: the compass rotates with the sphere.
+  The --feedback "Sphere:" line always tells you current orientation.
+  The "Felt position:" of each object tells you where it is in YOUR space.
+
+  DO NOT THINK IN WORLD COORDINATES WHEN PLACING OBJECTS.
+  Think: "I want the right ear to be to my right in the current view."
+  Then check --feedback to confirm felt position matches intent.
+  World coordinates are the implementation. Felt positions are the truth.
+
+  MODEL-RELATIVE LEFT/RIGHT (anatomy/characters):
+  "Model's right" means the subject's own right hand -- world -X when facing +Z.
+  "Model's left"  means the subject's own left hand -- world +X when facing +Z.
+  This matches medical/theatrical convention (patient's left, stage left).
+  ear_right should be at world -X. ear_left at world +X.
 
   CHARACTER WORK NOTE: For animals/characters, the spine runs along Y.
   A dog standing upright has its spine from feet (y=0) to head (y=max).
@@ -2763,32 +2789,37 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
 
     # -- Object tree ----------------------------------------------------------─
     lines.append('-- Objects --')
+    lines.append('  (Felt positions use the compass rule: see --help-ops for orientation guide)')
     lines.append('')
 
     def _felt_position(wp):
         """Describe world position in sculptor's felt space -- relative to current viewpoint.
         No camera language. Just: where would your hands find this in the clay?
         Projects world coords through az/el rotation and describes in near/far/left/right/up/down terms.
+        Left/right depends on facing direction:
+          - Scene faces away (back toward you): their left = your left (no mirror)
+          - Scene faces toward you (face to face): their left = your right (mirror)
         """
         import math as _m
         _az = _m.radians(vp.az); _el = _m.radians(vp.el)
-        # Rotate world point into view space (same rotation as _view())
         rx  =  wp.x*_m.cos(_az) - wp.z*_m.sin(_az)
         rz  =  wp.x*_m.sin(_az) + wp.z*_m.cos(_az)
         ry2 =  wp.y*_m.cos(_el) - rz*_m.sin(_el)
         rz2 =  wp.y*_m.sin(_el) + rz*_m.cos(_el)
-        # rx  = left(-)/right(+) in felt space
-        # ry2 = down(-)/up(+) in felt space
-        # rz2 = away(-)/near(+) in felt space (larger rz2 = closer to you)
 
-        # Threshold scales with scene extent -- small offset in a large scene is "centre"
+        # When scene faces toward you, left/right are mirrored vs when facing away.
+        # BUT _view() already returns +rx which is consistent across all azimuths.
+        # No additional mirror needed -- raw rx matches what the render shows.
+        facing = _m.cos(_az)  # kept for near/far depth sign
+
+        # Threshold scales with scene extent
         positions = [scene.world_pos(o) for o in all_objs]
         if positions:
             xs = [p.x for p in positions]; ys = [p.y for p in positions]; zs = [p.z for p in positions]
             scene_r = max(max(xs)-min(xs), max(ys)-min(ys), max(zs)-min(zs), 1.0) / 2
         else:
             scene_r = 10.0
-        thr = scene_r * 0.15  # 15% of half-scene-width = "close enough to centre"
+        thr = scene_r * 0.15
 
         def _lr(v):
             if abs(v) < thr: return None
@@ -2800,7 +2831,7 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
             if abs(v) < thr: return None
             return 'near side' if v > 0 else 'far side'
 
-        parts = [p for p in [_ud(ry2), _lr(rx), _nd(rz2)] if p]
+        parts = [p for p in [_ud(ry2), _lr(-rx), _nd(rz2)] if p]
         if not parts:
             return 'at centre of scene'
         return ', '.join(parts)
@@ -3646,14 +3677,12 @@ def export_povray(scene, out_path):
         lz = vp.look_at.z if vp.look_at else 0
         cam_pos = f'<{cx+lx:.2f},{cy+ly:.2f},{cz+lz:.2f}>'
 
-    # QUIRK_CAM_FLIP: disabled for raw baseline
-    # cam_flip: when the camera is on the -Z side (cz < 0), POV looks at the back
-    # of all geometry. Fix: move camera to the mirror position (+Z side) by negating
-    # cx and cz. Text primitives (billboards) also need rotate <0,180,0> to face the
-    # camera from this new position -- handled in emit below.
-    cam_flip = False  # (not vp.pos) and (cz < 0)
-    # if cam_flip:
-    #     cam_pos = f'<{-(cx+lx):.2f},{cy+ly:.2f},{-(cz+lz):.2f}>'
+    # cam_flip: always flip camera to +Z side by negating cz only.
+    # cx stays as-is -- the scene X mirror (scale <-1,1,1>) handles left/right.
+    # Negating cx was causing lateral camera displacement that broke L/R for some azimuths.
+    cam_flip = not vp.pos
+    if cam_flip:
+        cam_pos = f'<{-(cx+lx):.2f},{cy+ly:.2f},{-(cz+lz):.2f}>'
     look = f'<{vp.look_at.x},{vp.look_at.y},{vp.look_at.z}>' if vp.look_at else '<0,0,0>'
 
     def h2pov(h):
@@ -3773,10 +3802,9 @@ def export_povray(scene, out_path):
             lines_out.append(f'    {tx_block}')
             lines_out.append(f'    scale {size:.4f}')
             lines_out.append(f'    translate <{offset_x:.4f}, 0, 0>')
-            # QUIRK_TEXT_MERGE_FLIP: disabled for raw baseline
-            # if cam_flip:
-            #     lines_out.append(f'    translate <0, 0, {-depth_t:.3f}>')
-            #     lines_out.append(f'    rotate <0,180,0>')
+            if cam_flip:
+                lines_out.append(f'    translate <0, 0, {-depth_t:.3f}>')
+                lines_out.append(f'    rotate <0,180,0>')
             lines_out.append(f'    translate <{wpx:.4f},{wpy:.4f},{wpz:.4f}>')
             lines_out.append('  }')
         else:
@@ -3995,21 +4023,20 @@ def export_povray(scene, out_path):
             depth_t = float(p.get('depth', 0.5))
             font    = str(p.get('font', 'timrom.ttf'))
             offset_x = -len(content) * size * 0.35
-            # QUIRK_TEXT_OUTSIDE_UNION + X_MIRROR: disabled for raw baseline
-            # tx_wpx = wpx if cam_flip else -wpx
-            # Text emitted inside the union (raw baseline)
-            lines.append('text {')
-            lines.append(f'  ttf "{font}" "{content}" {depth_t:.3f}, 0')
-            lines.append(f'  {tx_block}')
-            lines.append(f'  scale {size:.4f}')
-            lines.append(f'  translate <{offset_x:.4f}, 0, 0>')
-            # if cam_flip:
-            #     lines.append(f'  translate <0, 0, {-depth_t:.3f}>')
-            #     lines.append(f'  rotate <0,180,0>')
-            # else:
-            #     lines.append(f'  scale <-1,1,1>')
-            lines.append(f'  translate <{wpx:.4f},{wpy:.4f},{wpz:.4f}>')
-            lines.append('}')
+            tx_wpx = -wpx  # always negate X -- DM_scene always gets scale <-1,1,1>
+            # Text emitted OUTSIDE the union -- never occluded by geometry
+            text_lines.append('text {')
+            text_lines.append(f'  ttf "{font}" "{content}" {depth_t:.3f}, 0')
+            text_lines.append(f'  {tx_block}')
+            text_lines.append(f'  scale {size:.4f}')
+            text_lines.append(f'  translate <{offset_x:.4f}, 0, 0>')
+            if cam_flip:
+                text_lines.append(f'  translate <0, 0, {-depth_t:.3f}>')
+                text_lines.append(f'  rotate <0,180,0>')
+            else:
+                text_lines.append(f'  scale <-1,1,1>')
+            text_lines.append(f'  translate <{tx_wpx:.4f},{wpy:.4f},{wpz:.4f}>')
+            text_lines.append('}')
 
         else:
             # Platonic solids - tessellate to mesh2
@@ -4032,20 +4059,19 @@ def export_povray(scene, out_path):
 
     for obj in scene.objects: emit(obj)
 
-    # Close the union. Raw baseline -- no X mirror, no text_lines flush.
-    # QUIRK_SCENE_XMIRROR: disabled
-    # if cam_flip:
-    #     lines.append('object { DM_scene }')
-    # else:
-    #     lines.append('object { DM_scene scale <-1,1,1> }')
+    # Close the union.
+    # cam_flip=True  (cz<0): camera flipped to +Z, geometry correct as-is.
+    # Both cases need X mirror to match native -rx convention (world +X = screen left).
+    # cam_flip additionally moved the camera to +Z -- that fixes front-back.
+    # scale <-1,1,1> fixes left-right in both cases.
     lines.append('}')
-    lines.append('object { DM_scene }')
+    lines.append('object { DM_scene scale <-1,1,1> }')
     lines.append('')
-    # QUIRK_TEXT_OUTSIDE_UNION flush: disabled
-    # if text_lines:
-    #     lines.append('// Text labels (outside union for correct visibility)')
-    #     lines.extend(text_lines)
-    #     lines.append('')
+    # Text outside the union -- never occluded by geometry
+    if text_lines:
+        lines.append('// Text labels (outside union for correct visibility)')
+        lines.extend(text_lines)
+        lines.append('')
 
     with open(out_path, 'w') as f: f.write('\n'.join(lines))
     exported = [o for o in scene.all_objects() if not _should_skip(o)]
@@ -4946,6 +4972,40 @@ def print_help_ops():
     print('DwarvenModeller - Operation Reference')
     print('=' * 60)
     print()
+    print('ORIENTATION & DIRECTIONS -- READ THIS FIRST')
+    print('-' * 60)
+    print('The scene sits inside an invisible sphere. You rotate the sphere')
+    print('in your hands. The --feedback "Sphere:" line shows your position.')
+    print()
+    print('THE COMPASS RULE:')
+    print('  Think of +Z as North. The sphere rotates. You stay fixed.')
+    print()
+    print('  North AWAY from you (az=180, "Scene faces away"):')
+    print('    West (-X) is YOUR LEFT.  East (+X) is YOUR RIGHT.')
+    print('    Left is left, right is right. Direct mapping.')
+    print()
+    print('  North TOWARD you (az=0, "Scene faces you"):')
+    print('    West (-X) is YOUR RIGHT. East (+X) is YOUR LEFT.')
+    print('    Left/right are MIRRORED -- like facing someone.')
+    print()
+    print('  For any other az: compass rotates with the sphere.')
+    print('  Always check "Felt position:" in --feedback to confirm.')
+    print()
+    print('MODEL-RELATIVE ANATOMY:')
+    print('  "Model\'s right" = world -X (subject faces +Z, their right = -X)')
+    print('  "Model\'s left"  = world +X')
+    print('  ear_right at world -X. ear_left at world +X.')
+    print('  Matches medical convention: patient\'s left, stage left.')
+    print()
+    print('TURNTABLE CONTROLS:')
+    print('  turn left=N / right=N   -- spin the sphere')
+    print('  tilt toward=N / away=N  -- tip the sphere')
+    print('  zoom in=N / out=N       -- bring closer / push further')
+    print('  nudge left/right/up/down/toward/away=N  -- shift centre')
+    print('  (all ops accept target=<id> to operate on an object instead)')
+    print()
+    print('-' * 60)
+    print()
     print('All operations follow the pattern:')
     print('  --op "verb key=value key=value ..."')
     print()
@@ -4961,7 +5021,6 @@ def print_help_ops():
         for line in doc.strip().splitlines():
             print(f'    {line}')
         print()
-
 
 # ═════════════════════════════════════════════════════════════════════════════
 # § CLI
