@@ -10,12 +10,12 @@
       <transform translate="0.0,0.0,0.0" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
       <material fill="#888888" stroke="#444444" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
     </object>
-    <object id="face_front" type="cube" tags="null">
+    <object id="face_back" type="cube" tags="null">
       <params width="9.8" height="9.8" depth="0.3"/>
       <transform translate="0.0,0.0,5.15" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
       <material fill="#cc2222" stroke="#881111" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
     </object>
-    <object id="face_back" type="cube" tags="null">
+    <object id="face_front" type="cube" tags="null">
       <params width="9.8" height="9.8" depth="0.3"/>
       <transform translate="0.0,0.0,-5.15" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
       <material fill="#2222cc" stroke="#111188" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
@@ -42,12 +42,12 @@
     </object>
     <object id="lbl_front" type="text" tags="null">
       <params content="F" size="6.0" depth="0.5" font="timrom.ttf"/>
-      <transform translate="0.0,0.0,5.5" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <transform translate="0.0,0.0,-5.5" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
       <material fill="#ffffff" stroke="#000000" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
     </object>
     <object id="lbl_back" type="text" tags="null">
       <params content="B" size="6.0" depth="0.5" font="timrom.ttf"/>
-      <transform translate="0.0,0.0,-5.5" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
+      <transform translate="0.0,0.0,5.5" rotate="0.0,0.0,0.0" scale="1.0,1.0,1.0"/>
       <material fill="#ffffff" stroke="#000000" stroke_width="0.5" opacity="1.0" shininess="0.0"/>
     </object>
     <object id="lbl_right" type="text" tags="null">
