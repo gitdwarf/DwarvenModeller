@@ -2764,32 +2764,63 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
     else:
         _fd = 'away' if _facing > 0 else 'toward you'
         _side = 'right' if _lateral > 0 else 'left'
-        _closer = 'Scene left side is closest to you.' if _lateral > 0 else 'Scene right side is closest to you.'
+        # Closest side depends on both facing direction AND rotation direction.
+        # Facing away, rotated left  (sin<0): LEFT side closest  (arms out, back to you, turn left = left arm toward you)
+        # Facing away, rotated right (sin>0): RIGHT side closest
+        # Facing you,  rotated left  (sin<0): RIGHT side closest (facing you, turn left = right arm toward you)
+        # Facing you,  rotated right (sin>0): LEFT side closest
+        # Rule: LEFT closest when facing and lateral have OPPOSITE signs
+        _left_closest = (_facing > 0) != (_lateral > 0)  # XOR
+        _closer = 'Scene left side is closest to you.' if _left_closest else 'Scene right side is closest to you.'
         _orient = f'Scene rotated {_side}, facing {_fd}. {_closer}'
 
-    # Elevation description -- full -90 to +90 range, plain language
+    # Elevation description -- accounts for facing direction.
+    # When scene faces away (cos(az)>0): tilt down = top tilts away, bottom toward.
+    # When scene faces you  (cos(az)<0): tilt down = top tilts TOWARD, bottom away.
+    # (Like a person bowing: if facing away top goes away; if facing you top comes toward you.)
+    _scene_facing_you = _facing < 0  # cos(az) < 0 means scene faces you (az near 180)
     _el = vp.el
     if abs(_el) < 5:
         _elev = 'Viewing straight on, no vertical tilt. Top of scene is up, bottom is down.'
     elif _el > 0:
-        if _el < 20:
-            _elev = 'Looking slightly down. Scene top tilts away from you, scene bottom tilts toward you.'
-        elif _el < 50:
-            _elev = 'Looking down from above. You see more of the scene top than the bottom.'
-        elif _el < 80:
-            _elev = 'Steep top-down view. Scene top faces you almost directly, sides visible around the edges.'
+        if _scene_facing_you:
+            if _el < 20:
+                _elev = 'Looking slightly down. Scene top tilts toward you, scene bottom tilts away.'
+            elif _el < 50:
+                _elev = 'Looking down from above. You see more of the scene top -- it is tilting toward you.'
+            elif _el < 80:
+                _elev = 'Steep top-down view. Scene top faces you almost directly, sides visible around the edges.'
+            else:
+                _elev = 'Looking almost straight down. Scene top faces you. Left/right still apply horizontally.'
         else:
-            _elev = 'Looking almost straight down. Scene top faces you. Left/right still apply horizontally.'
+            if _el < 20:
+                _elev = 'Looking slightly down. Scene top tilts away from you, scene bottom tilts toward you.'
+            elif _el < 50:
+                _elev = 'Looking down from above. You see more of the scene top than the bottom.'
+            elif _el < 80:
+                _elev = 'Steep top-down view. Scene top faces you almost directly, sides visible around the edges.'
+            else:
+                _elev = 'Looking almost straight down. Scene top faces you. Left/right still apply horizontally.'
     else:
         _el_abs = abs(_el)
-        if _el_abs < 20:
-            _elev = 'Looking slightly up. Scene bottom tilts away from you, scene top tilts toward you.'
-        elif _el_abs < 50:
-            _elev = 'Looking up from below. You see more of the scene bottom than the top.'
-        elif _el_abs < 80:
-            _elev = 'Steep bottom-up view. Scene bottom faces you almost directly, sides visible around the edges.'
+        if _scene_facing_you:
+            if _el_abs < 20:
+                _elev = 'Looking slightly up. Scene bottom tilts toward you, scene top tilts away.'
+            elif _el_abs < 50:
+                _elev = 'Looking up from below. You see more of the scene bottom -- it is tilting toward you.'
+            elif _el_abs < 80:
+                _elev = 'Steep bottom-up view. Scene bottom faces you almost directly, sides visible around the edges.'
+            else:
+                _elev = 'Looking almost straight up. Scene bottom faces you. Left/right still apply horizontally.'
         else:
-            _elev = 'Looking almost straight up. Scene bottom faces you. Left/right still apply horizontally.'
+            if _el_abs < 20:
+                _elev = 'Looking slightly up. Scene bottom tilts away from you, scene top tilts toward you.'
+            elif _el_abs < 50:
+                _elev = 'Looking up from below. You see more of the scene bottom than the top.'
+            elif _el_abs < 80:
+                _elev = 'Steep bottom-up view. Scene bottom faces you almost directly, sides visible around the edges.'
+            else:
+                _elev = 'Looking almost straight up. Scene bottom faces you. Left/right still apply horizontally.'
 
     # Express viewpoint in sculptor/turntable vocabulary, not CAD camera terms.
     # turn = az (spin the sphere), tilt = el (tip the sphere), zoom = scale
