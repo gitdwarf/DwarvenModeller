@@ -10,6 +10,16 @@ PHILOSOPHY: Digital clay, not CAD.
   The blind human artist and the Claude instance use the same interface.
   Accessibility is not a feature - it is the architecture.
 
+  FOR AI INSTANCES -- THIS IS CRITICAL:
+  You have read about CAD software. You have never used it.
+  Blind people have never used CAD either. But both groups have felt clay.
+  This tool is operated by FEEL, not by coordinates.
+  Coordinates exist as shortcuts -- but always describe operations in
+  human terms: "push the nose up a bit", "turn the head left", "the ear
+  feels too far forward". Check --feedback after every operation.
+  NEVER assume a position is correct without measuring it.
+  Directionality errors have caused more wasted sessions than anything else.
+
 USAGE:
   dwarvenmodeller --new scene.dms
   dwarvenmodeller --file scene.dms --op "add type=sphere id=head radius=20"
@@ -55,30 +65,31 @@ COORDINATE SYSTEM: right-handed, Y-up, Z-toward-viewer-at-az=0. Units arbitrary.
   +Z = toward viewer (az=0)
 
   LEFT/RIGHT -- THE COMPASS RULE (critical for AI instances):
-  Think of the scene as a compass. +Z is North. The sphere rotates in your hands.
+  Think of +Z as North on a compass. YOU are fixed. The sphere rotates in your hands.
 
-  When North (+Z) faces AWAY from you (az=180, scene faces away):
-    West (-X) is on YOUR LEFT.  East (+X) is on YOUR RIGHT.
-    Left is left, right is right. Direct mapping.
+  az=0   -- North (+Z) points AWAY from you. Scene faces away.
+             West (-X) is YOUR LEFT.  East (+X) is YOUR RIGHT.
+             Left is left, right is right. Direct mapping.
 
-  When North (+Z) faces TOWARD you (az=0, scene faces you):
-    West (-X) is on YOUR RIGHT. East (+X) is on YOUR LEFT.
-    Left/right are MIRRORED -- like looking at someone facing you.
+  az=180 -- North (+Z) points TOWARD you. Scene faces you (like a person facing you).
+             West (-X) is YOUR RIGHT. East (+X) is YOUR LEFT.
+             Left and right are MIRRORED -- like looking at someone face-to-face.
 
-  For any other azimuth: the compass rotates with the sphere.
-  The --feedback "Sphere:" line always tells you current orientation.
-  The "Felt position:" of each object tells you where it is in YOUR space.
+  Any other az: the compass rotates with the sphere. Always check --feedback.
 
-  DO NOT THINK IN WORLD COORDINATES WHEN PLACING OBJECTS.
-  Think: "I want the right ear to be to my right in the current view."
-  Then check --feedback to confirm felt position matches intent.
+  THIS IS NOT CAD. There is no camera. You hold the clay. The clay turns.
+  Do not use "Front view", "Top view", "Camera position" -- these are CAD terms.
+  Instead: "Turn the sphere so the face is toward me." "Tilt the top away."
+
+  NEVER guess directions. Use --feedback "Felt position:" to confirm where
+  each piece of clay is in YOUR space before and after every operation.
   World coordinates are the implementation. Felt positions are the truth.
 
   MODEL-RELATIVE LEFT/RIGHT (anatomy/characters):
-  "Model's right" means the subject's own right hand -- world -X when facing +Z.
-  "Model's left"  means the subject's own left hand -- world +X when facing +Z.
-  This matches medical/theatrical convention (patient's left, stage left).
-  ear_right should be at world -X. ear_left at world +X.
+  "Model's right" = world -X (subject faces +Z, their right hand = -X direction)
+  "Model's left"  = world +X (their left hand = +X direction)
+  ear_right lives at world -X. ear_left lives at world +X.
+  Matches medical convention: patient's left, stage left, actor's left.
 
   CHARACTER WORK NOTE: For animals/characters, the spine runs along Y.
   A dog standing upright has its spine from feet (y=0) to head (y=max).
@@ -1946,9 +1957,14 @@ def op_viewpoint(scene, kwargs):
       zoom in=N / out=N      -- bring closer or push further
       nudge left/right/up/down/toward/away=N -- shift the centre
 
-    Common presets:
-      Front:  az=150 el=0     Side: az=60 el=0
-      Top:    az=0   el=89    3/4:  az=330 el=25 (default)
+    Common starting points (use turn/tilt to adjust from here):
+      Scene facing away (like a back view):  az=0   el=0
+      Scene facing you  (like a front view): az=180 el=0
+      Looking down from above:               az=0   el=89
+      3/4 view (scene rotated left, facing): az=330 el=25 (default)
+
+    Note: there is no "Front view" or "Camera". You hold the clay.
+    Turn/tilt the sphere until it feels right, then check --feedback.
     """
     name = opt(kwargs, 'name', 'default')
     vp   = next((v for v in scene.viewpoints if v.name == name), None)
@@ -2726,27 +2742,28 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
 
     import math as _math
     _az_r = _math.radians(vp.az)
-    # User rotates the scene-sphere; camera is fixed.
-    # cos(az): +1 = scene faces you (+Z toward viewer), -1 = scene faces away
-    # sin(az): +1 = scene rotated right (+Z points right), -1 = scene rotated left
+    # THE COMPASS RULE: +Z is North. YOU are fixed. Sphere rotates.
+    # cos(az) > 0 (az near 0):   North (+Z) points AWAY from you. Scene faces away.
+    # cos(az) < 0 (az near 180): North (+Z) points TOWARD you. Scene faces you.
+    # sin(az) > 0: sphere rotated right (+Z points right)
+    # sin(az) < 0: sphere rotated left  (+Z points left)
     _facing = _math.cos(_az_r)
     _lateral = _math.sin(_az_r)
 
     _thr = 0.4
     if abs(_facing) > (1 - _thr) and abs(_lateral) < _thr:
         if _facing > 0:
-            _orient = 'Scene faces you. Scene left is your right, scene right is your left.'
-        else:
             _orient = 'Scene faces away. Scene left is your left, scene right is your right.'
+        else:
+            _orient = 'Scene faces you. Scene left is your right, scene right is your left.'
     elif abs(_lateral) > (1 - _thr) and abs(_facing) < _thr:
         if _lateral > 0:
             _orient = 'Scene faces right. Scene left is toward you, scene right is away from you.'
         else:
             _orient = 'Scene faces left. Scene left is away from you, scene right is toward you.'
     else:
-        _fd = 'toward you' if _facing > 0 else 'away'
+        _fd = 'away' if _facing > 0 else 'toward you'
         _side = 'right' if _lateral > 0 else 'left'
-        # Describe which side of the scene is closer to you due to the rotation
         _closer = 'Scene left side is closest to you.' if _lateral > 0 else 'Scene right side is closest to you.'
         _orient = f'Scene rotated {_side}, facing {_fd}. {_closer}'
 
@@ -2831,7 +2848,7 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
             if abs(v) < thr: return None
             return 'near side' if v > 0 else 'far side'
 
-        parts = [p for p in [_ud(ry2), _lr(-rx), _nd(rz2)] if p]
+        parts = [p for p in [_ud(ry2), _lr(rx if _facing > 0 else -rx), _nd(rz2)] if p]
         if not parts:
             return 'at centre of scene'
         return ', '.join(parts)
@@ -4978,18 +4995,18 @@ def print_help_ops():
     print('in your hands. The --feedback "Sphere:" line shows your position.')
     print()
     print('THE COMPASS RULE:')
-    print('  Think of +Z as North. The sphere rotates. You stay fixed.')
+    print('  Think of +Z as North. YOU are fixed. The sphere rotates in your hands.')
     print()
-    print('  North AWAY from you (az=180, "Scene faces away"):')
+    print('  az=0   -- North (+Z) points AWAY from you. Scene faces away.')
     print('    West (-X) is YOUR LEFT.  East (+X) is YOUR RIGHT.')
     print('    Left is left, right is right. Direct mapping.')
     print()
-    print('  North TOWARD you (az=0, "Scene faces you"):')
+    print('  az=180 -- North (+Z) points TOWARD you. Scene faces you.')
     print('    West (-X) is YOUR RIGHT. East (+X) is YOUR LEFT.')
-    print('    Left/right are MIRRORED -- like facing someone.')
+    print('    Left and right are MIRRORED -- like facing someone.')
     print()
-    print('  For any other az: compass rotates with the sphere.')
-    print('  Always check "Felt position:" in --feedback to confirm.')
+    print('  Any other az: compass rotates with the sphere.')
+    print('  ALWAYS check "Felt position:" in --feedback. Never guess.')
     print()
     print('MODEL-RELATIVE ANATOMY:')
     print('  "Model\'s right" = world -X (subject faces +Z, their right = -X)')
@@ -5002,7 +5019,8 @@ def print_help_ops():
     print('  tilt toward=N / away=N  -- tip the sphere')
     print('  zoom in=N / out=N       -- bring closer / push further')
     print('  nudge left/right/up/down/toward/away=N  -- shift centre')
-    print('  (all ops accept target=<id> to operate on an object instead)')
+    print('    (directions are relative to YOU, the modeller -- not the model)')
+    print('  All turntable ops accept target=<id> to operate on an object instead of the scene.')
     print()
     print('-' * 60)
     print()
