@@ -41,19 +41,15 @@ USAGE:
   dwarvenmodeller --help-ops
 
 EXPORT FORMATS:
-  svg         - True scalable vector: POV render → vtracer trace → <path> elements
-                Perfect quality at any zoom. Works for all geometry complexity.
-                Requires: povray, vtracer (pip install vtracer)
-  svg_vector  - Pure geometric vector BSP (simple non-interpenetrating scenes only)
-  svg_pov     - POV render embedded as base64 PNG in SVG wrapper (fast, not scalable)
-  png         - Direct POV render, honest raster
-  povray      - POV-Ray scene file (.pov), ground truth 3D render
-  obj         - Wavefront OBJ mesh
-  stl         - STL mesh for 3D printing
-  x3d         - X3D/VRML scene
-  gltf        - glTF 2.0 (web 3D)
-  css/html    - CSS3D scene (browser-renderable)
+  svg/svg_trace - True vector via POV+vtracer (requires: povray, vtracer)
+  png           - PNG raster via native renderer
+  png_native    - PNG via native renderer (explicit)
+  povray/pov    - POV-Ray scene file (.pov)
+  obj/stl       - Mesh export (OBJ, STL for 3D printing)
+  x3d/gltf/glb  - Scene formats (X3D, glTF 2.0)
+  css/html      - CSS3D scene (browser-renderable)
   txt/spatial/braille - Text spatial layout (screen reader / Braille display)
+  (full list: run with an invalid format name)
 
 PRIMITIVES (Platonic solids + conveniences):
   tetrahedron  cube  octahedron  dodecahedron  icosahedron
@@ -128,6 +124,25 @@ TEST SCENES (in outputs/):
   knight.dms    - chess knight, organic sculptural construction
   colourcube    - 6-colour diagnostic cube, used for export regression testing
 """
+
+# ==============================================================================
+# DwarvenModeller -- RENDER SETTINGS
+# These control fundamental rendering conventions.
+# Change with care -- test against the full 4-way rotation suite after any edit.
+# ==============================================================================
+
+# PITCH_INVERSION: controls the direction of el (elevation/pitch) rotation.
+#   1 = intuitive (DM default): el=+45 = FORWARD pitch. Top tilts AWAY, bottom toward you.
+#       Like nodding forward -- nose goes down, back of head goes up.
+#       Natural for blind users and AI.
+#   0 = technical convention: el=+45 tilts top TOWARD you (backward/upward pitch).
+#       Matches standard CAD/3D convention.
+# If user feedback says pitch feels backwards, toggle this value.
+PITCH_INVERSION = 1
+
+# ==============================================================================
+# END RENDER SETTINGS
+# ==============================================================================
 
 import sys
 import os
@@ -515,6 +530,7 @@ class Viewpoint:
         self.name    = name
         self.az      = az       # azimuth degrees
         self.el      = el       # elevation degrees
+        self.roll    = 0.0      # roll degrees (rotation around axis pointing at you)
         self.scale   = scale    # projection scale
         self.pos     = pos      # explicit camera Vec3 (overrides az/el in POV-Ray)
         self.look_at = look_at  # explicit look-at Vec3
@@ -524,6 +540,7 @@ class Viewpoint:
         vp.set('name',  self.name)
         vp.set('az',    str(self.az))
         vp.set('el',    str(self.el))
+        if self.roll:   vp.set('roll',  str(self.roll))
         vp.set('scale', str(self.scale))
         if self.pos:     vp.set('pos',     str(self.pos))
         if self.look_at: vp.set('look_at', str(self.look_at))
@@ -537,6 +554,7 @@ class Viewpoint:
             el    = float(elem.get('el',     25)),
             scale = float(elem.get('scale',  1.0)),
         )
+        if elem.get('roll'):    vp.roll    = float(elem.get('roll'))
         if elem.get('pos'):     vp.pos     = Vec3.parse(elem.get('pos'))
         if elem.get('look_at'): vp.look_at = Vec3.parse(elem.get('look_at'))
         return vp
@@ -1973,7 +1991,8 @@ def op_viewpoint(scene, kwargs):
     scene.viewpoints.remove(vp); scene.viewpoints.insert(0, vp)
     changes = []
     if 'az'     in kwargs: vp.az    = float(kwargs['az']);    changes.append(f"az={vp.az}°")
-    if 'el'     in kwargs: vp.el    = float(kwargs['el']);    changes.append(f"el={vp.el}°")
+    if 'el'     in kwargs: vp.el    = float(kwargs['el']) % 360; changes.append(f"el={vp.el}°")
+    if 'roll'   in kwargs: vp.roll  = float(kwargs['roll']) % 360; changes.append(f"roll={vp.roll}°")
     if 'scale'  in kwargs: vp.scale = float(kwargs['scale']); changes.append(f"scale={vp.scale}")
     if 'pos'    in kwargs: vp.pos   = Vec3.parse(kwargs['pos']);     changes.append(f"camera at {vp.pos}")
     if 'look_at'in kwargs: vp.look_at=Vec3.parse(kwargs['look_at']); changes.append(f"look_at {vp.look_at}")
@@ -2108,8 +2127,10 @@ def op_roll(scene, kwargs):
         delta = float(kwargs.get('right', 0)) - float(kwargs.get('left', 0))
         obj.transform.rotate.z = (obj.transform.rotate.z + delta) % 360
         return f"Rolled '{kwargs['target']}' {'right' if delta>0 else 'left'} {abs(delta):.1f}°. Local Z now {obj.transform.rotate.z:.1f}°."
-    # Scene-sphere roll not yet stored in viewpoint -- acknowledged, planned
-    return "Scene roll noted. (Scene-sphere roll axis not yet stored in viewpoint -- use 'turn' and 'tilt' for now.)"
+    vp = scene.active_viewpoint()
+    delta = float(kwargs.get('right', 0)) - float(kwargs.get('left', 0))
+    vp.roll = (vp.roll + delta) % 360
+    return f"Rolled sphere {'right' if delta>0 else 'left'} {abs(delta):.1f}°. Roll now {vp.roll:.1f}°."
 
 
 
@@ -2743,97 +2764,66 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
     import math as _math
     _az_r = _math.radians(vp.az)
     # THE COMPASS RULE: +Z is North. YOU are fixed. Sphere rotates.
-    # cos(az) > 0 (az near 0):   North (+Z) points AWAY from you. Scene faces away.
-    # cos(az) < 0 (az near 180): North (+Z) points TOWARD you. Scene faces you.
-    # sin(az) > 0: sphere rotated right (+Z points right)
-    # sin(az) < 0: sphere rotated left  (+Z points left)
-    _facing = _math.cos(_az_r)
-    _lateral = _math.sin(_az_r)
-
-    _thr = 0.4
-    if abs(_facing) > (1 - _thr) and abs(_lateral) < _thr:
-        if _facing > 0:
-            _orient = 'Scene faces away. Scene left is your left, scene right is your right.'
-        else:
-            _orient = 'Scene faces you. Scene left is your right, scene right is your left.'
-    elif abs(_lateral) > (1 - _thr) and abs(_facing) < _thr:
-        if _lateral > 0:
-            _orient = 'Scene faces right. Scene left is toward you, scene right is away from you.'
-        else:
-            _orient = 'Scene faces left. Scene left is away from you, scene right is toward you.'
-    else:
-        _fd = 'away' if _facing > 0 else 'toward you'
-        _side = 'right' if _lateral > 0 else 'left'
-        # Closest side depends on both facing direction AND rotation direction.
-        # Facing away, rotated left  (sin<0): LEFT side closest  (arms out, back to you, turn left = left arm toward you)
-        # Facing away, rotated right (sin>0): RIGHT side closest
-        # Facing you,  rotated left  (sin<0): RIGHT side closest (facing you, turn left = right arm toward you)
-        # Facing you,  rotated right (sin>0): LEFT side closest
-        # Rule: LEFT closest when facing and lateral have OPPOSITE signs
-        _left_closest = (_facing > 0) != (_lateral > 0)  # XOR
-        _closer = 'Scene left side is closest to you.' if _left_closest else 'Scene right side is closest to you.'
-        _orient = f'Scene rotated {_side}, facing {_fd}. {_closer}'
-
-    # Elevation description -- accounts for facing direction.
-    # When scene faces away (cos(az)>0): tilt down = top tilts away, bottom toward.
-    # When scene faces you  (cos(az)<0): tilt down = top tilts TOWARD, bottom away.
-    # (Like a person bowing: if facing away top goes away; if facing you top comes toward you.)
-    _scene_facing_you = _facing < 0  # cos(az) < 0 means scene faces you (az near 180)
-    _el = vp.el
-    if abs(_el) < 5:
-        _elev = 'Viewing straight on, no vertical tilt. Top of scene is up, bottom is down.'
-    elif _el > 0:
-        if _scene_facing_you:
-            if _el < 20:
-                _elev = 'Looking slightly down. Scene top tilts toward you, scene bottom tilts away.'
-            elif _el < 50:
-                _elev = 'Looking down from above. You see more of the scene top -- it is tilting toward you.'
-            elif _el < 80:
-                _elev = 'Steep top-down view. Scene top faces you almost directly, sides visible around the edges.'
-            else:
-                _elev = 'Looking almost straight down. Scene top faces you. Left/right still apply horizontally.'
-        else:
-            if _el < 20:
-                _elev = 'Looking slightly down. Scene top tilts away from you, scene bottom tilts toward you.'
-            elif _el < 50:
-                _elev = 'Looking down from above. You see more of the scene top than the bottom.'
-            elif _el < 80:
-                _elev = 'Steep top-down view. Scene top faces you almost directly, sides visible around the edges.'
-            else:
-                _elev = 'Looking almost straight down. Scene top faces you. Left/right still apply horizontally.'
-    else:
-        _el_abs = abs(_el)
-        if _scene_facing_you:
-            if _el_abs < 20:
-                _elev = 'Looking slightly up. Scene bottom tilts toward you, scene top tilts away.'
-            elif _el_abs < 50:
-                _elev = 'Looking up from below. You see more of the scene bottom -- it is tilting toward you.'
-            elif _el_abs < 80:
-                _elev = 'Steep bottom-up view. Scene bottom faces you almost directly, sides visible around the edges.'
-            else:
-                _elev = 'Looking almost straight up. Scene bottom faces you. Left/right still apply horizontally.'
-        else:
-            if _el_abs < 20:
-                _elev = 'Looking slightly up. Scene bottom tilts away from you, scene top tilts toward you.'
-            elif _el_abs < 50:
-                _elev = 'Looking up from below. You see more of the scene bottom than the top.'
-            elif _el_abs < 80:
-                _elev = 'Steep bottom-up view. Scene bottom faces you almost directly, sides visible around the edges.'
-            else:
-                _elev = 'Looking almost straight up. Scene bottom faces you. Left/right still apply horizontally.'
+    _facing  = _math.cos(_az_r)   # >0: faces away, <0: faces you
+    _lateral = _math.sin(_az_r)   # >0: rotated right, <0: rotated left
 
     # Express viewpoint in sculptor/turntable vocabulary, not CAD camera terms.
     # turn = az (spin the sphere), tilt = el (tip the sphere), zoom = scale
-    _zoom_str = f'{round(vp.scale, 4)}'
+
+    # LINE 1: Facing -- how directly is the scene facing you vs away?
+    _face_deg = round(abs(_math.degrees(_math.acos(max(-1.0, min(1.0, _facing))))))
+    if _facing > 0.98:
+        _line_facing = 'Facing away (0°).'
+    elif _facing < -0.98:
+        _line_facing = 'Facing toward you (180°).'
+    elif _facing > 0:
+        _line_facing = f'Facing mostly away ({_face_deg}° from full away).'
+    else:
+        _line_facing = f'Facing mostly toward you ({180 - _face_deg}° from full toward).'
+
+    # LINE 2: Rotation (yaw/az) -- how far rotated left or right?
+    _az_norm = vp.az % 360
+    if _az_norm > 180: _az_norm = _az_norm - 360   # signed: negative=left, positive=right
+    if abs(_az_norm) < 2:
+        _line_az = 'No yaw (not rotated left or right).'
+    elif _az_norm > 0:
+        _line_az = f'Yaw right {_az_norm:.0f}°.'
+    else:
+        _line_az = f'Yaw left {abs(_az_norm):.0f}°.'
+
+    # LINE 3: Tilt (el) -- how far tilted forward (down) or back (up)?
+    _el_raw = vp.el % 360
+    _el = _el_raw if _el_raw <= 180 else _el_raw - 360   # signed: +ve=tilt down, -ve=tilt up
+    if abs(_el) < 2:
+        _line_el = 'No pitch (not tilted forward or back).'
+    elif _el > 0:
+        _line_el = f'Pitch forward (down) {_el:.0f}°.'
+    else:
+        _line_el = f'Pitch back (up) {abs(_el):.0f}°.'
+
+    # LINE 4: Roll -- how far rolled clockwise or anticlockwise?
+    _roll_r = vp.roll % 360
+    if _roll_r > 180: _roll_r = _roll_r - 360   # signed: +ve=clockwise, -ve=anticlockwise
+    if abs(_roll_r) < 2:
+        _line_roll = None   # no roll, omit the line entirely
+    elif _roll_r > 0:
+        _line_roll = f'Rolled clockwise {_roll_r:.0f}°.'
+    else:
+        _line_roll = f'Rolled anticlockwise {abs(_roll_r):.0f}°.'
+
+    _zoom_str   = f'{round(vp.scale, 4)}'
+    _dist_str   = f'Scene is {round(vp.scale, 4)} units away.'
     _centre_str = (f', centred on ({vp.look_at.x:.1f}, {vp.look_at.y:.1f}, {vp.look_at.z:.1f})'
                    if vp.look_at else '')
 
+    _desc_lines = [f'  {_dist_str}', f'  {_line_facing}', f'  {_line_az}', f'  {_line_el}']
+    if _line_roll:
+        _desc_lines.append(f'  {_line_roll}')
+
     lines += ['',
               f'Scene contains {len(all_objs)} object{"s" if len(all_objs)!=1 else ""}.',
-              f'Sphere: turn={vp.az}°  tilt={vp.el}°  zoom={_zoom_str}{_centre_str}.',
-              f'  {_orient}',
-              f'  {_elev}',
-              '']
+              f'Sphere: yaw={vp.az}°  pitch={vp.el}°  distance={_zoom_str}{_centre_str}{"  roll="+str(round(vp.roll,1))+"°" if vp.roll else ""}.',
+              ] + _desc_lines + ['']
 
     # -- Object tree ----------------------------------------------------------─
     lines.append('-- Objects --')
@@ -3068,43 +3058,56 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
 def text_layout_summary(scene, view='top'):
     """ASCII-art spatial layout - screen-reader and Braille-display friendly.
 
-    view='top'   - top-down (X horizontal, Z into screen, Y ignored) -- default
-    view='side'  - side view (X horizontal, Y vertical, Z ignored)
-    view='front' - front view (Z horizontal, Y vertical, X ignored)
+    Uses the scene's active viewpoint (az/el/roll) via the same _view()
+    projection as the ANSI and PNG renderers, so the layout matches what
+    you actually see on screen.
+
+    The 'view' parameter is kept for API compatibility but ignored -- the
+    viewpoint az/el/roll determines the projection.
     """
     all_objs = scene.all_objects()
     if not all_objs: return '  (empty)'
     W, H = 60, 20
 
-    view = view.lower()
-    if view == 'side':
-        # X horizontal, Y vertical (spine/height visible)
-        label = 'Side view (X=right, Y=up)'
-        def proj(p): return (p.x, -p.y)
-    elif view == 'front':
-        # Z horizontal, Y vertical (depth/height visible)
-        label = 'Front view (Z=right, Y=up)'
-        def proj(p): return (p.z, -p.y)
-    else:
-        # Top-down: X horizontal, Z vertical (footprint visible)
-        label = 'Top view (X=right, Z=down)'
-        def proj(p): return (p.x, p.z)
+    vp   = scene.active_viewpoint()
+    az_r = math.radians(vp.az)
+    el_r = math.radians(-vp.el if PITCH_INVERSION else vp.el)
 
-    positions = [(o, proj(scene.world_pos(o))) for o in all_objs]
-    xs = [p[0] for _, p in positions]; ys = [p[1] for _, p in positions]
-    xr = max(xs)-min(xs) or 1;        yr = max(ys)-min(ys) or 1
+    def _view(x, y, z):
+        rx  =  x*math.cos(az_r) + z*math.sin(az_r)
+        rz  = -x*math.sin(az_r) + z*math.cos(az_r)
+        ry2 =  y*math.cos(el_r) - rz*math.sin(el_r)
+        rz2 =  y*math.sin(el_r) + rz*math.cos(el_r)
+        depth = rz2
+        if vp.roll:
+            _rr = math.radians(vp.roll)
+            _cr, _sr = math.cos(_rr), math.sin(_rr)
+            sx, sy = rx, -ry2
+            return sx*_cr - sy*_sr, sx*_sr + sy*_cr, depth
+        return rx, -ry2, depth
+
+    positions = []
+    for o in all_objs:
+        p = scene.world_pos(o)
+        sx, sy, depth = _view(p.x, p.y, p.z)
+        positions.append((o, sx, sy, depth))
+
+    xs = [p[1] for p in positions]; ys = [p[2] for p in positions]
+    xr = max(xs)-min(xs) or 1;      yr = max(ys)-min(ys) or 1
     grid = [['·']*W for _ in range(H)]
-    for obj, (sx, sy) in positions:
+    for obj, sx, sy, depth in positions:
         col = int((sx-min(xs))/xr*(W-1)); row = int((sy-min(ys))/yr*(H-1))
         col = max(0, min(W-1, col));      row = max(0, min(H-1, row))
-        # Text primitives: show content string, not object id
         if obj.type == 'text':
-            label = str(obj.params.get('content', obj.id))[:W]
+            lbl = str(obj.params.get('content', obj.id))[:W]
         else:
-            label = obj.id[:4].upper()
-        for i, ch in enumerate(label):
+            lbl = obj.id[:4].upper()
+        for i, ch in enumerate(lbl):
             if col+i < W: grid[row][col+i] = ch
-    lines = [f'  {label}']
+
+    header = f'  Viewpoint az={vp.az:.0f}° el={vp.el:.0f}°' + \
+             (f' roll={vp.roll:.0f}°' if vp.roll else '')
+    lines = [header]
     lines += ['  '+''.join(row) for row in grid]
     lines += ['', '  Key: object IDs at projected positions. · = empty space.']
     return '\n'.join(lines)
@@ -3126,16 +3129,22 @@ def ansi_render(scene, char_w=72, char_h=32):
     if not all_objs: return '  (empty scene)'
 
     az_r = math.radians(vp.az)
-    el_r = math.radians(vp.el)
+    el_r = math.radians(-vp.el if PITCH_INVERSION else vp.el)
     sc   = vp.scale
 
     def _view(x, y, z):
         """World point → (screen_x, screen_y, depth).  Smaller depth = nearer."""
-        rx  =  x*math.cos(az_r) - z*math.sin(az_r)
-        rz  =  x*math.sin(az_r) + z*math.cos(az_r)
+        rx  =  x*math.cos(az_r) + z*math.sin(az_r)
+        rz  = -x*math.sin(az_r) + z*math.cos(az_r)
         ry2 =  y*math.cos(el_r) - rz*math.sin(el_r)
         rz2 =  y*math.sin(el_r) + rz*math.cos(el_r)
-        depth = -rz2 if math.cos(az_r)*math.cos(el_r) > 0 else rz2
+        depth = rz2
+        # Apply roll: 2D rotation of screen coords around Z axis (axis pointing at you)
+        if vp.roll:
+            _rr = math.radians(vp.roll)
+            _cr, _sr = math.cos(_rr), math.sin(_rr)
+            _sx, _sy = rx*sc, -ry2*sc
+            return _sx*_cr - _sy*_sr, _sx*_sr + _sy*_cr, depth
         return rx*sc, -ry2*sc, depth
 
     def _proj_vec(dx, dy, dz):
@@ -3426,19 +3435,10 @@ def export_svg(scene, out_path, size=512):
         return f'#{r2:02x}{g2:02x}{b2:02x}'
 
     # -- Camera basis vectors --------------------------------------------------
-    # Derive camera position and look_at
+    # LOCKED CAMERA approach: camera fixed at <0, 0, -dist>.
+    # Scene world points are pre-rotated by az(Y) then el(X) before projection.
+    # Eliminates gimbal lock. Matches native renderer and POV approach.
     _dist = _camera_dist(scene, vp)
-    if vp.pos:
-        cam_pos  = (vp.pos.x, vp.pos.y, vp.pos.z)
-        look_at  = (vp.look_at.x if vp.look_at else 0,
-                    vp.look_at.y if vp.look_at else 0,
-                    vp.look_at.z if vp.look_at else 0)
-    else:
-        el_r = math.radians(vp.el); az_r = math.radians(vp.az)
-        cam_pos = ( _dist*math.cos(el_r)*math.sin(az_r),
-                    _dist*math.sin(el_r),
-                   -_dist*math.cos(el_r)*math.cos(az_r))
-        look_at = (0.0, 0.0, 0.0)
 
     def vsub(a,b): return (a[0]-b[0], a[1]-b[1], a[2]-b[2])
     def vadd(a,b): return (a[0]+b[0], a[1]+b[1], a[2]+b[2])
@@ -3448,20 +3448,49 @@ def export_svg(scene, out_path, size=512):
         m=math.sqrt(vdot(a,a)); return (a[0]/m,a[1]/m,a[2]/m) if m>1e-12 else (0,0,1)
     def vscale(a,s): return (a[0]*s,a[1]*s,a[2]*s)
 
-    # Forward, right, up basis
-    fwd = vnorm(vsub(look_at, cam_pos))
-    wup = (0.0, 1.0, 0.0)
-    rgt = vcross(wup, fwd); rgt = vnorm(rgt) if vdot(rgt,rgt)>1e-12 else (1,0,0)
-    up  = vcross(rgt, fwd)
+    # Pre-rotation matrices: az around Y (clockwise), then el around rotated X
+    _az_r  = math.radians(vp.az)
+    _el_r  = math.radians(-vp.el if PITCH_INVERSION else vp.el)
+    _cos_az, _sin_az = math.cos(_az_r), math.sin(_az_r)
+    _cos_el, _sin_el = math.cos(_el_r), math.sin(_el_r)
+
+    # look_at offset
+    _lx = vp.look_at.x if vp.look_at else 0.0
+    _ly = vp.look_at.y if vp.look_at else 0.0
+    _lz = vp.look_at.z if vp.look_at else 0.0
+
+    def rotate_point(p):
+        """Rotate world point by az(Y) then el(X), matching native _view() convention."""
+        x, y, z = p[0]-_lx, p[1]-_ly, p[2]-_lz
+        # az rotation around Y (clockwise: use +sin for DM convention)
+        rx  =  x*_cos_az + z*_sin_az
+        rz  = -x*_sin_az + z*_cos_az
+        # el rotation around X
+        ry2 =  y*_cos_el - rz*_sin_el
+        rz2 =  y*_sin_el + rz*_cos_el
+        return (rx, ry2, rz2)
+
+    # Camera fixed at <0, 0, -dist> looking at origin
+    cam_pos = (0.0, 0.0, -_dist)
+    look_at = (0.0, 0.0, 0.0)
+    fwd = (0.0, 0.0, 1.0)   # fixed: camera looks along +Z
+    rgt = (1.0, 0.0, 0.0)   # fixed: right is +X
+    up  = (0.0, 1.0, 0.0)   # fixed: up is +Y
 
     def to_cam(p):
-        """Transform world-space point to camera space."""
-        d = vsub(p, cam_pos)
-        return (vdot(d,rgt), vdot(d,up), vdot(d,fwd))
+        """Rotate world point to camera space. Camera at origin looking along +Z."""
+        return rotate_point(p)
 
     def proj2d(pc, sc):
-        """Project camera-space point to 2D SVG coords (orthographic, scaled)."""
-        return (pc[0]*sc, pc[1]*sc)
+        """Project camera-space point to 2D SVG coords (orthographic, scaled).
+        Y is negated: camera-space +Y = up, but SVG +Y = down.
+        Roll applied as 2D rotation of screen coords after projection."""
+        sx, sy = pc[0]*sc, -pc[1]*sc
+        if vp.roll:
+            _rr = math.radians(vp.roll)
+            _cr, _sr = math.cos(_rr), math.sin(_rr)
+            return (sx*_cr - sy*_sr, sx*_sr + sy*_cr)
+        return (sx, sy)
 
     # -- Tessellate and transform to camera space ------------------------------
     pairs = tessellate_scene(scene, subdivisions=2)
@@ -3475,14 +3504,16 @@ def export_svg(scene, out_path, size=512):
         for tri in tris:
             # Transform to camera space
             cam_tri = tuple(to_cam(v) for v in tri)
-            # Back-face cull in camera space
-            # Normal via cross product; dot with any vertex (camera at origin)
+            # Back-face cull in camera space.
+            # Camera looks along +Z (fwd = (0,0,1)).
+            # Face is front-facing if its normal has a negative Z component
+            # (normal points toward camera = toward -Z).
+            # Use cross product of camera-space edges; check sign of Z component.
             e1 = vsub(cam_tri[1], cam_tri[0])
             e2 = vsub(cam_tri[2], cam_tri[0])
             n  = vcross(e1, e2)
-            # Camera is at origin; vector from camera to vertex = cam_tri[0]
-            # Face is front-facing if normal points TOWARD camera (dot < 0)
-            if vdot(n, cam_tri[0]) >= 0:
+            # n.z < 0 means normal points toward camera (-Z direction) = front-facing
+            if n[2] >= 0:
                 continue  # back-face
             # Shade fill by face normal in camera space
             shaded_fill = shade_face(mat.fill, n)
@@ -3711,27 +3742,18 @@ def export_povray(scene, out_path):
     # Camera position: explicit pos= overrides az/el computation.
     # GROUND TRUTH is the viewpoint az/el as set and navigated in DM.
     # All exports must render from this exact angle - no recalculation.
+    # Camera approach: LOCK camera, ROTATE scene.
+    # Camera is fixed at <0, 0, -dist>. Scene rotates to match az/el.
+    # This eliminates gimbal lock, sky vector issues, and all camera orbit math.
+    # Same approach as native renderer -- rotate the clay, not the viewer.
+    dist = _camera_dist(scene, vp)
     if vp.pos:
         cam_pos = f'<{vp.pos.x},{vp.pos.y},{vp.pos.z}>'
     else:
-        el_r = math.radians(vp.el)
-        az_r = math.radians(vp.az)
-        dist = _camera_dist(scene, vp)
-        cx = dist * math.cos(el_r) * math.sin(az_r)
-        cy = dist * math.sin(el_r)
-        cz = -dist * math.cos(el_r) * math.cos(az_r)
-        lx = vp.look_at.x if vp.look_at else 0
-        ly = vp.look_at.y if vp.look_at else 0
-        lz = vp.look_at.z if vp.look_at else 0
-        cam_pos = f'<{cx+lx:.2f},{cy+ly:.2f},{cz+lz:.2f}>'
-
-    # cam_flip: always flip camera to +Z side by negating cz only.
-    # cx stays as-is -- the scene X mirror (scale <-1,1,1>) handles left/right.
-    # Negating cx was causing lateral camera displacement that broke L/R for some azimuths.
-    cam_flip = not vp.pos
-    if cam_flip:
-        cam_pos = f'<{-(cx+lx):.2f},{cy+ly:.2f},{-(cz+lz):.2f}>'
-    look = f'<{vp.look_at.x},{vp.look_at.y},{vp.look_at.z}>' if vp.look_at else '<0,0,0>'
+        cam_pos = f'<0,0,{-dist:.2f}>'
+    look = '<0,0,0>'
+    cam_flip = False
+    sky = '<0,1,0>'  # always valid -- camera never moves off Z axis
 
     def h2pov(h):
         r,g,b=_hex_to_rgb(h); return f'rgb<{r/255:.3f},{g/255:.3f},{b/255:.3f}>'
@@ -3843,16 +3865,14 @@ def export_povray(scene, out_path):
             size     = float(p.get('size', 5.0))
             depth_t  = float(p.get('depth', 0.5))
             font     = str(p.get('font', 'timrom.ttf'))
-            # Centre the text: POV-Ray text starts at origin, ~0.7*size wide per char
             offset_x = -len(content) * size * 0.35
+            import math as _tm2
             lines_out.append(f'  text {{')
             lines_out.append(f'    ttf "{font}" "{content}" {depth_t:.3f}, 0')
             lines_out.append(f'    {tx_block}')
             lines_out.append(f'    scale {size:.4f}')
             lines_out.append(f'    translate <{offset_x:.4f}, 0, 0>')
-            if cam_flip:
-                lines_out.append(f'    translate <0, 0, {-depth_t:.3f}>')
-                lines_out.append(f'    rotate <0,180,0>')
+            lines_out.append(f'    scale <-1,1,1>')
             lines_out.append(f'    translate <{wpx:.4f},{wpy:.4f},{wpz:.4f}>')
             lines_out.append('  }')
         else:
@@ -4071,19 +4091,30 @@ def export_povray(scene, out_path):
             depth_t = float(p.get('depth', 0.5))
             font    = str(p.get('font', 'timrom.ttf'))
             offset_x = -len(content) * size * 0.35
-            tx_wpx = -wpx  # always negate X -- DM_scene always gets scale <-1,1,1>
-            # Text emitted OUTSIDE the union -- never occluded by geometry
+            # Physical text: when scene faces away (cos(az)>0), text is seen
+            # from behind -- mirror it like transparent paper viewed from the back.
+            # Text is always mirrored: POV text{} runs left-to-right in world space,
+            # but DM text reads right-to-left on the object surface (like physical clay).
             text_lines.append('text {')
             text_lines.append(f'  ttf "{font}" "{content}" {depth_t:.3f}, 0')
             text_lines.append(f'  {tx_block}')
             text_lines.append(f'  scale {size:.4f}')
             text_lines.append(f'  translate <{offset_x:.4f}, 0, 0>')
-            if cam_flip:
-                text_lines.append(f'  translate <0, 0, {-depth_t:.3f}>')
-                text_lines.append(f'  rotate <0,180,0>')
+            text_lines.append(f'  scale <-1,1,1>')
+            text_lines.append(f'  translate <{wpx:.4f},{wpy:.4f},{wpz:.4f}>')
+            # Apply same rotation as DM_scene so text rotates with geometry
+            _txt_el = -vp.el if PITCH_INVERSION else vp.el
+            _txt_az = vp.az
+            if vp.look_at and (vp.look_at.x or vp.look_at.y or vp.look_at.z):
+                lx_ = vp.look_at.x; ly_ = vp.look_at.y; lz_ = vp.look_at.z
+                text_lines.append(f'  translate <{-lx_:.4f},{-ly_:.4f},{-lz_:.4f}>')
+                text_lines.append(f'  rotate <0,{_txt_az:.4f},0>')
+                text_lines.append(f'  rotate <{_txt_el:.4f},0,0>')
             else:
-                text_lines.append(f'  scale <-1,1,1>')
-            text_lines.append(f'  translate <{tx_wpx:.4f},{wpy:.4f},{wpz:.4f}>')
+                text_lines.append(f'  rotate <0,{_txt_az:.4f},0>')
+                text_lines.append(f'  rotate <{_txt_el:.4f},0,0>')
+                _txt_roll = -(vp.roll if PITCH_INVERSION else -vp.roll)
+                if _txt_roll: text_lines.append(f'  rotate <0,0,{_txt_roll:.4f}>')
             text_lines.append('}')
 
         else:
@@ -4113,9 +4144,23 @@ def export_povray(scene, out_path):
     # cam_flip additionally moved the camera to +Z -- that fixes front-back.
     # scale <-1,1,1> fixes left-right in both cases.
     lines.append('}')
-    lines.append('object { DM_scene scale <-1,1,1> }')
+    # Rotate scene to match az/el viewpoint -- camera is fixed at <0,0,-dist>.
+    # Rotation order: az (Y axis) first, then el (X axis). Matches native _view().
+    # PITCH_INVERSION: negate el for POV to match native forward-pitch convention.
+    _pov_el = -vp.el if PITCH_INVERSION else vp.el
+    # az uses clockwise convention -- negate for POV right-hand rule
+    _pov_az = vp.az
+    # look_at offset: if look_at is set, translate scene so look_at is at origin
+    lx = vp.look_at.x if vp.look_at else 0
+    ly = vp.look_at.y if vp.look_at else 0
+    lz = vp.look_at.z if vp.look_at else 0
+    if lx or ly or lz:
+        _pov_roll = -(vp.roll if PITCH_INVERSION else -vp.roll)
+        lines.append(f'object {{ DM_scene translate <{-lx:.4f},{-ly:.4f},{-lz:.4f}> rotate <0,{_pov_az:.4f},0> rotate <{_pov_el:.4f},0,0> rotate <0,0,{_pov_roll:.4f}> }}')
+    else:
+        _pov_roll = -(vp.roll if PITCH_INVERSION else -vp.roll)
+        lines.append(f'object {{ DM_scene rotate <0,{_pov_az:.4f},0> rotate <{_pov_el:.4f},0,0> rotate <0,0,{_pov_roll:.4f}> }}')
     lines.append('')
-    # Text outside the union -- never occluded by geometry
     if text_lines:
         lines.append('// Text labels (outside union for correct visibility)')
         lines.extend(text_lines)
@@ -4158,7 +4203,7 @@ def export_obj(scene, out_path):
                 lines_v.extend([f'o {obj.id}', f'# fill={obj.material.fill}'])
                 for tri in tris:
                     for v in tri:
-                        lines_v.append(f'v {-v[0]:.6f} {v[1]:.6f} {v[2]:.6f}')
+                        lines_v.append(f'v {v[0]:.6f} {v[1]:.6f} {-v[2]:.6f}')
                 for i in range(len(tris)):
                     a = offset+i*3; lines_f.append(f'f {a} {a+1} {a+2}')
                 offset += len(tris)*3
@@ -4171,26 +4216,13 @@ def export_obj(scene, out_path):
 
     with open(out_path, 'w') as f: f.write('\n'.join(lines_v + lines_f))
 
-    # Write camera sidecar for Blender testbench -- same position as gltf camera
-    import json as _json
-    vp = scene.active_viewpoint()
-    el_r = math.radians(vp.el); az_r = math.radians(vp.az); dist = _camera_dist(scene, vp)
-    if vp.pos:
-        dm_cx, dm_cy, dm_cz = vp.pos.x, vp.pos.y, vp.pos.z
-    else:
-        lx = vp.look_at.x if vp.look_at else 0
-        ly = vp.look_at.y if vp.look_at else 0
-        lz = vp.look_at.z if vp.look_at else 0
-        dm_cx = dist * math.cos(el_r) * math.sin(az_r) + lx
-        dm_cy = dist * math.sin(el_r) + ly
-        dm_cz = -dist * math.cos(el_r) * math.cos(az_r) + lz
-    # Geometry X is negated in export. Camera follows: +dm_cx on negated geometry = correct side.
-    lx = vp.look_at.x if vp.look_at else 0
-    ly = vp.look_at.y if vp.look_at else 0
-    lz = vp.look_at.z if vp.look_at else 0
-    sidecar = out_path.rsplit('.', 1)[0] + '.camera.json'
-    with open(sidecar, 'w') as f:
-        _json.dump({'cam': [dm_cx, -dm_cz, dm_cy], 'look_at': [lx, -lz, ly]}, f)
+    # NOTE on Blender import:
+    # DM world space: X=right, Y=up, Z=toward viewer (camera at -Z for az=0/el=0).
+    # OBJ/Blender use the same Y-up convention.
+    # To match DM's default view in Blender: View menu > Viewpoint > Front
+    # (or Numpad 1), then rotate 90 degrees so you're looking from -Z toward +Z.
+    # Blender's default Front view looks from +Y, not -Z, so the model appears
+    # rotated 90 degrees compared to DM's az=0 view.
 
     return f"Exported OBJ: {out_path}."
 
@@ -4229,7 +4261,7 @@ def export_stl(scene, out_path, subdivisions=3):
     # Write camera sidecar -- same logic as OBJ
     import json as _json
     vp = scene.active_viewpoint()
-    el_r = math.radians(vp.el); az_r = math.radians(vp.az); dist = _camera_dist(scene, vp)
+    el_r = math.radians(-vp.el if PITCH_INVERSION else vp.el); az_r = math.radians(vp.az); dist = _camera_dist(scene, vp)
     if vp.pos:
         dm_cx, dm_cy, dm_cz = vp.pos.x, vp.pos.y, vp.pos.z
     else:
@@ -4314,13 +4346,13 @@ def export_x3d(scene, out_path):
             tris = tessellate_object(_obj_no_children(obj), parent_M, 2)
             if tris:
                 all_v=[v for tri in tris for v in tri]
-                coords=' '.join(f'{v[0]:.3f} {v[1]:.3f} {v[2]:.3f}' for v in all_v)
+                coords=' '.join(f'{v[0]:.3f} {v[1]:.3f} {-v[2]:.3f}' for v in all_v)
                 indices=' '.join(f'{i*3} {i*3+1} {i*3+2} -1' for i in range(len(tris)))
                 lines.append(f'      <IndexedFaceSet solid="true" coordIndex="{indices}">')
                 lines.append(f'        <Coordinate point="{coords}"/>')
                 lines.append(f'      </IndexedFaceSet>')
 
-        lines += [f'    </Shape>', f'  </Transform>', '']
+        lines.extend([f'    </Shape>', f'  </Transform>', ''])
         for child in obj.children: emit(child, world_M)
 
     for obj in scene.objects: emit(obj)
@@ -4372,7 +4404,7 @@ def export_gltf(scene, out_path, subdivisions=3):
         if not tris: continue
         verts=[v for tri in tris for v in tri]; n_v=len(verts)
         pos_bytes=bytearray()
-        for v in verts: pos_bytes+=struct.pack('<fff', v[0], v[1], v[2])
+        for v in verts: pos_bytes+=struct.pack('<fff', v[0], v[1], -v[2])
         xs=[v[0] for v in verts]; ys=[v[1] for v in verts]; zs=[v[2] for v in verts]
         pos_bv =add_buffer_view(bytes(pos_bytes),ARRAY_BUFFER)
         pos_acc=add_accessor(pos_bv,FLOAT,n_v,'VEC3',[min(xs),min(ys),min(zs)],[max(xs),max(ys),max(zs)])
@@ -4402,70 +4434,48 @@ def export_gltf(scene, out_path, subdivisions=3):
         # Explicit camera position -- convert DM Z to glTF Z
         dm_cx = vp.pos.x; dm_cy = vp.pos.y; dm_cz = vp.pos.z
     else:
-        el_r = math.radians(vp.el); az_r = math.radians(vp.az)
+        el_r = math.radians(-vp.el if PITCH_INVERSION else vp.el); az_r = math.radians(vp.az)
         dm_cx =  dist * math.cos(el_r) * math.sin(az_r) + lx
         dm_cy =  dist * math.sin(el_r)                  + ly
         dm_cz = -dist * math.cos(el_r) * math.cos(az_r) + lz
 
     # Camera: +dm_cx places Blender camera on the correct side to match native renderer.
-    gcx = dm_cx
-    gcy = dm_cy
-    gcz = dm_cz
-    glz = lz
+    # glTF Y-up convention: X=right, Y=up, Z=toward-viewer.
+    # DM world: X=right, Y=up, Z=away-from-viewer. So negate Z for glTF.
+    gcx =  dm_cx
+    gcy =  dm_cy
+    gcz = -dm_cz   # DM Z-away -> glTF Z-toward
+    glz = -lz      # same for look-at Z
 
-    # Build camera rotation quaternion.
-    # Strategy: compute in Blender Z-up space (where we know the camera position),
-    # then convert quaternion back to glTF Y-up space.
-    #
-    # Blender imports glTF with: bl_x=gltf_x, bl_y=gltf_z, bl_z=gltf_y
-    # So Blender camera pos = (gcx, gcz_neg, gcy) where gcz_neg = -dm_cz (already done above)
-    # i.e. Blender pos = (dm_cx, dm_cz, dm_cy) -- wait, gcz=-dm_cz so Blender Y = gcz = -dm_cz = -41.8 ✓
-    #
-    # In Blender Z-up space, camera is at (gcx, gcz, gcy) looking toward (lx, glz, ly)
-    # Note: Blender bl_y = gltf_z = gcz, Blender bl_z = gltf_y = gcy
+    # Camera rotation: in glTF Y-up space, camera looks along its local -Z.
+    # Camera is at (gcx,gcy,gcz) looking at (lx,gcy_la,glz).
+    def _n(v):
+        m = math.sqrt(sum(x*x for x in v)); return tuple(x/m for x in v) if m>1e-10 else (0,0,1)
+    def _cr(a,b): return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])
 
-    def _normalize(v):
-        m = math.sqrt(sum(x*x for x in v))
-        return tuple(x/m for x in v) if m > 1e-10 else (0,0,1)
-    def _cross(a,b): return (a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0])
-    def _dot(a,b):   return sum(x*y for x,y in zip(a,b))
-
-    # Blender camera position: bl_x=gltf_x, bl_y=-gltf_z, bl_z=gltf_y
-    bl_cam    = (gcx, -gcz, gcy)
-    bl_target = (lx,  -glz, ly)
-
-    fwd   = _normalize(tuple(t-c for t,c in zip(bl_target, bl_cam)))
-    right = _normalize(_cross(fwd, (0,0,1)))   # up hint = Z in Blender
-    if _dot(right, right) < 1e-10:
-        right = (1,0,0)
-    up    = _cross(right, fwd)
-
-    # Rotation matrix: columns are right, up, -fwd (camera looks along -Z)
-    cam_z = (-fwd[0], -fwd[1], -fwd[2])
-    mr = [[right[0], up[0], cam_z[0]],
-          [right[1], up[1], cam_z[1]],
-          [right[2], up[2], cam_z[2]]]
-
-    # Matrix to quaternion (Blender Z-up space)
-    trace = mr[0][0]+mr[1][1]+mr[2][2]
-    if trace > 0:
-        s = 0.5/math.sqrt(trace+1)
-        bw = 0.25/s
-        bx = (mr[2][1]-mr[1][2])*s; by = (mr[0][2]-mr[2][0])*s; bz = (mr[1][0]-mr[0][1])*s
-    elif mr[0][0]>mr[1][1] and mr[0][0]>mr[2][2]:
-        s = 2*math.sqrt(1+mr[0][0]-mr[1][1]-mr[2][2])
-        bw=(mr[2][1]-mr[1][2])/s; bx=0.25*s; by=(mr[0][1]+mr[1][0])/s; bz=(mr[0][2]+mr[2][0])/s
-    elif mr[1][1]>mr[2][2]:
-        s = 2*math.sqrt(1+mr[1][1]-mr[0][0]-mr[2][2])
-        bw=(mr[0][2]-mr[2][0])/s; bx=(mr[0][1]+mr[1][0])/s; by=0.25*s; bz=(mr[1][2]+mr[2][1])/s
+    fwd   = _n((lx-gcx, ly-gcy, glz-gcz))     # toward target
+    right = _n(_cr((0,1,0), fwd)) if abs(fwd[1])<0.99 else _n(_cr((0,0,1), fwd))
+    up    = _cr(fwd, right)
+    # Camera basis: right=+X, up=+Y, back=-fwd=+Z (glTF camera looks along -Z)
+    bk    = (-fwd[0], -fwd[1], -fwd[2])
+    # Rotation matrix (column-major: right, up, back)
+    m = [[right[0], up[0], bk[0]],
+         [right[1], up[1], bk[1]],
+         [right[2], up[2], bk[2]]]
+    # Matrix to quaternion
+    tr = m[0][0]+m[1][1]+m[2][2]
+    if tr > 0:
+        s = 0.5/math.sqrt(tr+1); qw=0.25/s
+        qx=(m[2][1]-m[1][2])*s; qy=(m[0][2]-m[2][0])*s; qz=(m[1][0]-m[0][1])*s
+    elif m[0][0]>m[1][1] and m[0][0]>m[2][2]:
+        s=2*math.sqrt(1+m[0][0]-m[1][1]-m[2][2])
+        qw=(m[2][1]-m[1][2])/s; qx=0.25*s; qy=(m[0][1]+m[1][0])/s; qz=(m[0][2]+m[2][0])/s
+    elif m[1][1]>m[2][2]:
+        s=2*math.sqrt(1+m[1][1]-m[0][0]-m[2][2])
+        qw=(m[0][2]-m[2][0])/s; qx=(m[0][1]+m[1][0])/s; qy=0.25*s; qz=(m[1][2]+m[2][1])/s
     else:
-        s = 2*math.sqrt(1+mr[2][2]-mr[0][0]-mr[1][1])
-        bw=(mr[1][0]-mr[0][1])/s; bx=(mr[0][2]+mr[2][0])/s; by=(mr[1][2]+mr[2][1])/s; bz=0.25*s
-
-    # Write Blender-space quaternion directly to glTF.
-    # Blender's glTF importer will read it correctly since we computed it
-    # in the same space Blender uses after import.
-    qx = bx; qy = by; qz = bz; qw = bw
+        s=2*math.sqrt(1+m[2][2]-m[0][0]-m[1][1])
+        qw=(m[1][0]-m[0][1])/s; qx=(m[0][2]+m[2][0])/s; qy=(m[1][2]+m[2][1])/s; qz=0.25*s
 
     gltf['cameras'].append({'type':'perspective',
                              'perspective':{'yfov':0.698,'aspectRatio':1.0,
@@ -4476,14 +4486,30 @@ def export_gltf(scene, out_path, subdivisions=3):
         'camera': 0,
         'translation': [round(gcx,4), round(gcy,4), round(gcz,4)],
         'rotation':    [round(qx,6),  round(qy,6),  round(qz,6), round(qw,6)],
-        'extras':      {'look_at': [lx, ly, lz]},
+        'extras':      {'look_at': [lx, ly, -lz]},
     })
     gltf['scenes'][0]['nodes'] = [i for i in gltf['scenes'][0]['nodes'] if i != -2] + [cam_node_idx]
 
     b64=base64.b64encode(bytes(bin_data)).decode('ascii')
     gltf['buffers']=[{'byteLength':len(bin_data),
                       'uri':f'data:application/octet-stream;base64,{b64}'}]
-    with open(out_path,'w',encoding='utf-8') as f: _json.dump(gltf,f,indent=2)
+
+    if out_path.lower().endswith('.glb'):
+        # GLB binary container format
+        import struct as _struct
+        json_bytes = _json.dumps(gltf, separators=(',',':')).encode('utf-8')
+        # Pad JSON chunk to 4-byte boundary with spaces
+        while len(json_bytes) % 4: json_bytes += b' '
+        # GLB header: magic(4) + version(4) + total_length(4)
+        # JSON chunk: length(4) + type(4=0x4E4F534A "JSON") + data
+        # BIN chunk:  length(4) + type(4=0x004E4942 "BIN\0") + data
+        # For self-contained GLB with base64 buffer, just write JSON chunk only
+        chunk_json = _struct.pack('<II', len(json_bytes), 0x4E4F534A) + json_bytes
+        total_len  = 12 + len(chunk_json)
+        header     = _struct.pack('<III', 0x46546C67, 2, total_len)
+        with open(out_path, 'wb') as f: f.write(header + chunk_json)
+    else:
+        with open(out_path, 'w', encoding='utf-8') as f: _json.dump(gltf, f, indent=2)
     n=len([p for p in pairs if p[0]])
     return f"Exported glTF: {out_path} ({n} meshes, {sum(len(t) for t,_ in pairs)} triangles)."
 
@@ -4775,16 +4801,21 @@ def export_png_native(scene, out_path, size=512):
         return f"Exported PNG (native): {out_path} ({size}x{size}px, empty scene)."
 
     az_r = _math.radians(vp.az)
-    el_r = _math.radians(vp.el)
+    el_r = _math.radians(-vp.el if PITCH_INVERSION else vp.el)
     sc   = vp.scale
 
     # Identical projection to ansi_render._view (our verified source of truth)
     def _view(x, y, z):
-        rx  =  x*_math.cos(az_r) - z*_math.sin(az_r)
-        rz  =  x*_math.sin(az_r) + z*_math.cos(az_r)
+        rx  =  x*_math.cos(az_r) + z*_math.sin(az_r)
+        rz  = -x*_math.sin(az_r) + z*_math.cos(az_r)
         ry2 =  y*_math.cos(el_r) - rz*_math.sin(el_r)
         rz2 =  y*_math.sin(el_r) + rz*_math.cos(el_r)
-        depth = -rz2 if _math.cos(az_r)*_math.cos(el_r) > 0 else rz2
+        depth = rz2
+        if vp.roll:
+            _rr = _math.radians(vp.roll)
+            _cr, _sr = _math.cos(_rr), _math.sin(_rr)
+            _sx, _sy = rx*sc, -ry2*sc
+            return _sx*_cr - _sy*_sr, _sx*_sr + _sy*_cr, depth
         return rx*sc, -ry2*sc, depth
 
     def _hex_rgb(h):
@@ -4934,30 +4965,145 @@ def _export_png_povray(scene, out_path, size=512):
 # -- Export dispatcher --------------------------------------------------------─
 
 def _export_disabled(scene, out_path, **kwargs):
-    """Stub for temporarily disabled exporters. Re-enable after core renderer is finalised."""
+    """Stub for not-yet-implemented exporters."""
     fmt = out_path.rsplit('.', 1)[-1].upper() if '.' in out_path else '?'
-    return (f"Export '{fmt}' is currently disabled. "
-            f"Only 'png' and 'povray' are active while core renderer is being finalised.")
+    return (f"Export '{fmt}' is not yet implemented. "
+            f"Use an invalid format name to see all available formats.")
+
+
+# -- BRAILLE ------------------------------------------------------------------
+
+# Grade 1 (uncontracted) English Braille -- Unicode cell mapping.
+# Each character maps to its Unicode Braille equivalent (U+2800-U+28FF).
+# Compatible with all modern Braille displays and screen readers.
+_BRAILLE_MAP = {
+    'a':'\u2801','b':'\u2803','c':'\u2809','d':'\u2819','e':'\u2811',
+    'f':'\u280b','g':'\u281b','h':'\u2813','i':'\u280a','j':'\u281a',
+    'k':'\u2805','l':'\u2807','m':'\u280d','n':'\u281d','o':'\u2815',
+    'p':'\u280f','q':'\u281f','r':'\u2817','s':'\u280e','t':'\u281e',
+    'u':'\u2825','v':'\u2827','w':'\u283a','x':'\u282d','y':'\u283d',
+    'z':'\u2835',
+    ' ':'\u2800', '\n':'\u2800\n', '\t':'\u2800\u2800',
+    '.':'\u2832', ',':'\u2802', ':':'\u2812', ';':'\u2806',
+    '!':'\u2816', '?':'\u2826', '-':'\u2824', '/':'\u280c',
+    '(':'\u2836', ')':'\u2836', '\'':'\u2804', '"':'\u2804',
+    '=':'\u2836', '+':'\u2816', '*':'\u2814', '#':'\u283c', '@':'\u2801',
+    '0':'\u281a','1':'\u2802','2':'\u2806','3':'\u2812','4':'\u2832',
+    '5':'\u2822','6':'\u2816','7':'\u2836','8':'\u2826','9':'\u2814',
+}
+_BRAILLE_NUM_IND = '\u283c'   # number indicator
+
+def _text_to_braille(text):
+    """Convert plain text to Unicode Grade 1 Braille."""
+    out = []; in_num = False
+    for ch in text:
+        if ch.isdigit():
+            if not in_num:
+                out.append(_BRAILLE_NUM_IND); in_num = True
+            out.append(_BRAILLE_MAP.get(ch, ch))
+        else:
+            in_num = False
+            out.append(_BRAILLE_MAP.get(ch.lower(), ch))
+    return ''.join(out)
+
+
+def _build_scene_text(scene):
+    """Build plain-text scene description (shared by txt and braille exporters)."""
+    all_objs = scene.all_objects()
+    lines = [
+        'DWARVEN MODELLER - SPATIAL SCENE DESCRIPTION',
+        '=' * 50, '',
+        f'Scene contains {len(all_objs)} objects.', '',
+    ]
+    if all_objs:
+        positions=[scene.world_pos(o) for o in all_objs]
+        radii    =[scene.world_radius(o) for o in all_objs]
+        min_x=min(p.x-r for p,r in zip(positions,radii)); max_x=max(p.x+r for p,r in zip(positions,radii))
+        min_y=min(p.y-r for p,r in zip(positions,radii)); max_y=max(p.y+r for p,r in zip(positions,radii))
+        min_z=min(p.z-r for p,r in zip(positions,radii)); max_z=max(p.z+r for p,r in zip(positions,radii))
+        lines.append(f'Dimensions: {max_x-min_x:.1f} wide, {max_y-min_y:.1f} tall, {max_z-min_z:.1f} deep.')
+        lines.append('')
+    lines += ['OBJECTS', '-'*30, '']
+    for obj in all_objs:
+        wp    = scene.world_pos(obj)
+        eff_r = scene.world_radius(obj)
+        lines.append(f'Object: {obj.id}')
+        lines.append(f'  Type: {obj.type}')
+        lines.append(f'  Size: radius {eff_r:.2f} units.')
+        lines.append(f'  Position: {wp.x:.2f} right, {wp.y:.2f} up, {wp.z:.2f} forward.')
+        if obj.material.fill:
+            lines.append(f'  Color: {obj.material.fill}.')
+        lines.append('')
+    return all_objs, '\n'.join(lines)
+
+
+def export_braille_text(scene, out_path):
+    """Export scene description as Unicode Braille.
+    Uses touchmap (Grade 2 contracted) if available, else Grade 1 fallback.
+    Output uses Unicode Braille cells (U+2800-U+28FF).
+    Compatible with all modern Braille displays and screen readers.
+    """
+    all_objs, plain_text = _build_scene_text(scene)
+
+    # Try Grade 2 (contracted) via touchmap first -- preferred for readability
+    try:
+        from touchmap.encoder import text_to_braille as _t2b
+        braille_text = _t2b(plain_text, grade=2, characterError=False)
+        grade_note = 'Grade 2 contracted via touchmap'
+    except ImportError:
+        import sys
+        print("WARNING: touchmap not installed -- falling back to Grade 1 uncontracted Braille.\n"
+              "         For Grade 2 contracted Braille: pip install touchmap", file=sys.stderr)
+        braille_text = _text_to_braille(plain_text)
+        grade_note = 'Grade 1 uncontracted (install touchmap for Grade 2)'
+
+    with open(out_path, 'w', encoding='utf-8') as f:
+        f.write(braille_text)
+    return f"Exported Braille ({grade_note}): {out_path} ({len(all_objs)} objects)."
+
+
+def export_braille_render(scene, out_path, size=512):
+    """Export scene as Braille dot-matrix art -- a tactile render for terminal/Braille display.
+    Renders the scene to PNG via the native renderer, then converts to Braille cells
+    using brailleart. Each 2x4 pixel block maps to one Braille cell.
+    Useful for blind users: the Braille cell pattern approximates the visual scene layout.
+    """
+    import tempfile, os
+    try:
+        from brailleart.converter import convert as _ba_convert
+    except ImportError:
+        return "Braille render requires brailleart: pip install braille-art"
+
+    # Render to temp PNG first
+    with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+        tmp_path = tmp.name
+    try:
+        export_png_native(scene, tmp_path, size=size)
+        braille_art = _ba_convert(tmp_path, width=80)
+        with open(out_path, 'w', encoding='utf-8') as f:
+            f.write(braille_art)
+        lines = braille_art.count('\n')
+        return f"Exported Braille render: {out_path} ({lines} lines, 80 cols)."
+    finally:
+        os.unlink(tmp_path)
+
 
 EXPORT_FORMATS = {
     # -- ACTIVE --
     'povray': export_povray, 'pov': export_povray,
     'png':        export_png,
     'png_native': export_png_native,
-    # -- DISABLED (pending core renderer sign-off) --
-    'svg':        _export_disabled,
-    'svg_trace':  _export_disabled,
-    'svg_pov':    _export_disabled,
-    'svg+pov':    _export_disabled,
-    'svgpov':     _export_disabled,
-    'svg_vector': _export_disabled,
-    'obj':        _export_disabled,
-    'stl':        _export_disabled,
-    'x3d':        _export_disabled,
-    'gltf':       _export_disabled, 'glb':    _export_disabled,
-    'css':        _export_disabled, 'css3d':  _export_disabled, 'html': _export_disabled,
-    'txt':        _export_disabled, 'text':   _export_disabled,
-    'braille':    _export_disabled, 'spatial':_export_disabled,
+    # -- SVG (true vector via POV+vtracer, requires povray+vtracer) --
+    'svg':        export_svg_trace,
+    'svg_trace':  export_svg_trace,
+    'obj':        export_obj,
+    'stl':        export_stl,
+    'x3d':        export_x3d,
+    'gltf':       export_gltf,     'glb':    export_gltf,
+    'txt':        export_spatial_text, 'text': export_spatial_text,
+    'spatial':    export_spatial_text,
+    'braille':    export_braille_text,
+    'braille_render': export_braille_render,
 }
 
 def run_export(scene, fmt, out_path, size=512, subdivisions=None):
@@ -5089,8 +5235,8 @@ def main():
     parser.add_argument('--list',           action='store_true',
                         help='List all objects with world positions')
     parser.add_argument('--export',   '-e',
-                        help='Export: format=svg|png|povray|svg_pov|svg_vector|obj|stl|x3d|gltf|css|txt '
-                             'out=<path> [size=N] [subdivisions=N]')
+                        help='Export: format=<fmt> out=<path> [size=N] [subdivisions=N]  '
+                             f'(formats: {", ".join(sorted(set(EXPORT_FORMATS.keys())))})')
     parser.add_argument('--merge',    '-m',
                         help='Merge another .dms file (objects namespaced by filename)')
     parser.add_argument('--batch',    '-b',
@@ -5296,7 +5442,7 @@ def main():
         _fmt_ext = {
             'povray': 'pov', 'pov': 'pov',
             'png': 'png', 'png_native': 'png', 'svg': 'svg', 'svg_trace': 'svg',
-            'svg_pov': 'svg', 'svg_vector': 'svg',
+
             'obj': 'obj', 'stl': 'stl', 'gltf': 'gltf', 'glb': 'glb',
             'x3d': 'x3d', 'css': 'html', 'css3d': 'html', 'html': 'html',
             'txt': 'txt', 'text': 'txt', 'braille': 'txt', 'spatial': 'txt',
