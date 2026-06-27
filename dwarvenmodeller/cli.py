@@ -35,7 +35,8 @@ PHILOSOPHY: Digital clay, not CAD.
   "Bring the ear forward 0.2 units."
 
   Run --help for usage. Run --help-ops for the full operation reference.
-  Run --philosophy to see this again. Run --support for contact and licencing.
+  Run --philosophy to see this again. Run --license for licence terms.
+  Run --support for contact, donations, and commercial licencing.
 """
 
 _LICENSE_TEXT = """DwarvenModeller
@@ -304,8 +305,9 @@ def main():
         print('  Bug reports and questions:')
         print('  https://github.com/gitdwarf/DwarvenModeller/issues')
         print()
-        print('  Commercial licencing (USD $1,000 one-time fee):')
-        print('  https://www.paypal.com/paypalme/gitdwarf')
+        print('  Commercial licencing: USD $1,000 one-time fee per legal entity.')
+        print('  Run --license for full terms.')
+        print('  Payment: https://www.paypal.com/paypalme/gitdwarf')
         print()
         print('  Donations gratefully accepted at the same link.')
         return 0

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dwarvenmodeller"
-version = "0.3.0"
+version = "0.3.1"
 description = "Headless stateless 3D clay modeller. Text-first. No GUI. No viewport. No mouse required."
 readme = "README.md"
 requires-python = ">=3.10"

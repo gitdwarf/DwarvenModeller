@@ -1,5 +1,9 @@
 # DwarvenModeller Changelog
 
+## 0.3.1 (2026-06)
+- --support now mentions --license
+- Philosophy footer now lists --license and --support clearly
+
 ## 0.3.0 (2026-06)
 - Modular package split from monolithic script
 - Tessellation-based native PNG renderer (cubes, spheres, all shapes)
