@@ -1,0 +1,7 @@
+include README.md
+include CHANGES.md
+include LICENSE
+include pyproject.toml
+recursive-include assets *.dms
+recursive-include dwarvenmodeller *.py
+recursive-include tests *.py

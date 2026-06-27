@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dwarvenmodeller"
+version = "0.3.0"
+description = "Headless stateless 3D clay modeller. Text-first. No GUI. No viewport. No mouse required."
+readme = "README.md"
+requires-python = ">=3.10"
+license-files = ["LICENSE"]
+authors = [{ name = "thedwarf" }]
+keywords = ["3d", "modeller", "clay", "headless", "accessibility", "blind", "ai"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+    "Programming Language :: Python :: 3",
+]
+dependencies = ["Pillow>=9.0"]
+
+[project.urls]
+Homepage = "https://github.com/gitdwarf/DwarvenModeller"
+Issues = "https://github.com/gitdwarf/DwarvenModeller/issues"
+
+[project.optional-dependencies]
+dev = ["pytest", "pillow"]
+
+[project.scripts]
+dwarvenmodeller = "dwarvenmodeller.cli:main"
+dm = "dwarvenmodeller.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dwarvenmodeller*"]
+
+[tool.setuptools.package-data]
+dwarvenmodeller = ["../assets/*.dms", "README.md", "LICENSE"]
