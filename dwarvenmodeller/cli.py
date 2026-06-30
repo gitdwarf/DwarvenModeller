@@ -474,9 +474,19 @@ def main():
         result = merge_scenes(scene, other, ns)
         scene.history.append(HistoryEntry(f"merge {args.merge}"))
 
-    if args.export:
+    exit_code = 0
+
+    def _do_export():
+        nonlocal exit_code
         _, ekwargs = parse_op('export ' + args.export)
-        fmt  = ekwargs.get('format', 'svg').lower()
+        fmt = ekwargs.get('format', '')
+        if not fmt:
+            known = ', '.join(sorted(set(EXPORT_FORMATS.keys())))
+            print(f"Error: --export requires format=<fmt>. Available formats: {known}",
+                  file=sys.stderr)
+            exit_code = 1
+            return
+        fmt = fmt.lower()
         # Map format name to correct file extension
         _fmt_ext = {
             'povray': 'pov', 'pov': 'pov',
@@ -488,8 +498,14 @@ def main():
         }
         ext = _fmt_ext.get(fmt, fmt)
         # Default output: basename of source file in CWD, not DMS dir
+        try:
+            cwd = os.getcwd()
+        except FileNotFoundError:
+            cwd = os.path.dirname(os.path.abspath(args.file)) or '.'
+            print(f"Warning: current directory no longer exists, writing output next to "
+                  f"'{args.file}' instead.", file=sys.stderr)
         default_out = os.path.join(
-            os.getcwd(),
+            cwd,
             os.path.splitext(os.path.basename(args.file))[0] + f'.{ext}'
         )
         out  = ekwargs.get('out', default_out)
@@ -498,9 +514,10 @@ def main():
         try:
             result = run_export(scene, fmt, out, size, subdivisions=subs)
         except (ValueError, Exception) as e:
-            print(f"Export error: {e}", file=sys.stderr); return 1
+            print(f"Export error: {e}", file=sys.stderr)
+            exit_code = 1
 
-    if args.feedback is not None:
+    def _do_feedback():
         tty = sys.stdout.isatty()
         fb_target = None
         fb_az = fb_el = None
@@ -530,6 +547,27 @@ def main():
             print(generate_feedback(scene, tty=tty, target_id=fb_target,
                                     mode=fb_mode, view=fb_view))
 
+    # Dispatch --export and --feedback in the order they appear on the
+    # command line, so a failure in one does not skip or precede the other.
+    _ordered = []
+    for i, tok in enumerate(sys.argv[1:]):
+        if tok == '--export' or tok.startswith('--export='):
+            if args.export and not any(name == '_do_export' for name, _ in _ordered):
+                _ordered.append(('_do_export', _do_export))
+        elif tok == '--feedback' or tok.startswith('--feedback='):
+            if args.feedback is not None and not any(name == '_do_feedback' for name, _ in _ordered):
+                _ordered.append(('_do_feedback', _do_feedback))
+    # Fallback: if either flag was set but not found in argv scan (e.g. combined
+    # short forms), run export then feedback in the original default order.
+    seen_names = {name for name, _ in _ordered}
+    if args.export and '_do_export' not in seen_names:
+        _ordered.append(('_do_export', _do_export))
+    if args.feedback is not None and '_do_feedback' not in seen_names:
+        _ordered.append(('_do_feedback', _do_feedback))
+
+    for _, fn in _ordered:
+        fn()
+
     if args.list:
         all_objs = scene.all_objects()
         if not all_objs:
@@ -557,7 +595,7 @@ def main():
         print()
         print(generate_feedback(scene, tty=sys.stdout.isatty()))
 
-    return 0
+    return exit_code
 
 
 if __name__ == '__main__':

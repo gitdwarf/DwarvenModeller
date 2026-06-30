@@ -301,6 +301,7 @@ def generate_feedback(scene, tty=True, target_id=None, mode='full', view='top'):
     if tty:
         lines.append('-- ANSI render (truecolour terminal) --')
         lines.append('')
+        from .exporters import ansi_render  # lazy import: avoids circular dependency
         lines.append(ansi_render(scene))
         lines.append('')
     else:

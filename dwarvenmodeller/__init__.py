@@ -11,5 +11,5 @@ from .ops import *
 from .feedback import *
 from .exporters import *
 
-__version__ = '0.3.0'
+__version__ = '0.3.5'
 __author__  = 'DwarvenForge'
